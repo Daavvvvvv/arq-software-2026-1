@@ -9,3 +9,5 @@ export const getMenu = async (): Promise<Product[]> => {
     }, 500)
   })
 }
+
+

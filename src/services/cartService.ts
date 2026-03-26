@@ -69,3 +69,5 @@ export function getCartTotal(): number {
     return total + item.product.price * item.quantity
   }, 0)
 }
+
+

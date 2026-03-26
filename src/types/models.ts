@@ -52,3 +52,5 @@ export interface Order {
   paymentShouldFail: boolean
   history: OrderStatusHistoryItem[]
 }
+
+
