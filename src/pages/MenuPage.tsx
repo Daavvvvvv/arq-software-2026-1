@@ -39,6 +39,16 @@ function MenuPage() {
   }, [navigate])
 
   const handleAddToCart = (product: Product) => {
+    if (!product.available) {
+      setFeedbackMessage(`${product.name} no está disponible en este momento`)
+
+      setTimeout(() => {
+        setFeedbackMessage('')
+      }, 2000)
+
+      return
+    }
+
     addToCart(product)
     setFeedbackMessage(`${product.name} agregado al carrito`)
 
@@ -65,8 +75,16 @@ function MenuPage() {
       {products.map((product) => (
         <div key={product.id}>
           <p>{product.name}</p>
+          {product.description && <p>{product.description}</p>}
           <p>${product.price}</p>
-          <button onClick={() => handleAddToCart(product)}>Agregar</button>
+          <p>{product.available ? 'Disponible' : 'Agotado'}</p>
+
+          <button
+            onClick={() => handleAddToCart(product)}
+            disabled={!product.available}
+          >
+            {product.available ? 'Agregar' : 'No disponible'}
+          </button>
         </div>
       ))}
     </div>

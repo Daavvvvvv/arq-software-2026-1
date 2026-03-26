@@ -1,9 +1,25 @@
-import type { Order, OrderStatus, OrderStatusHistoryItem } from '../types/models'
+import type { CartItem, Order, OrderStatus, OrderStatusHistoryItem } from '../types/models'
 import { getCart, clearCart } from './cartService'
+import { getProductById } from './menuService'
 
 const ORDER_STORAGE_KEY = 'app_order'
 
-function getOrderStatusByElapsedTime(createdAt: string, paymentShouldFail: boolean): OrderStatus {
+export type CreateOrderError =
+  | 'empty_cart'
+  | 'product_unavailable'
+  | 'price_changed'
+
+export interface CreateOrderResult {
+  success: boolean
+  order?: Order
+  error?: CreateOrderError
+  message?: string
+}
+
+function getOrderStatusByElapsedTime(
+  createdAt: string,
+  paymentShouldFail: boolean,
+): OrderStatus {
   const createdAtMs = new Date(createdAt).getTime()
   const elapsedSeconds = Math.floor((Date.now() - createdAtMs) / 1000)
 
@@ -30,7 +46,14 @@ function shouldSimulatePaymentFailure(): boolean {
   return Math.random() < 0.2
 }
 
-function buildOrderHistory(createdAt: string, currentStatus: OrderStatus): OrderStatusHistoryItem[] {
+function shouldSimulateFetchFailure(): boolean {
+  return Math.random() < 0.2
+}
+
+function buildOrderHistory(
+  createdAt: string,
+  currentStatus: OrderStatus,
+): OrderStatusHistoryItem[] {
   const history: OrderStatusHistoryItem[] = [
     {
       status: 'created',
@@ -49,7 +72,11 @@ function buildOrderHistory(createdAt: string, currentStatus: OrderStatus): Order
     return history
   }
 
-  if (currentStatus === 'confirmed' || currentStatus === 'ready' || currentStatus === 'delivered') {
+  if (
+    currentStatus === 'confirmed' ||
+    currentStatus === 'ready' ||
+    currentStatus === 'delivered'
+  ) {
     history.push({
       status: 'confirmed',
       changedAt: new Date(new Date(createdAt).getTime() + 5000).toISOString(),
@@ -64,6 +91,7 @@ function buildOrderHistory(createdAt: string, currentStatus: OrderStatus): Order
       message: 'Pedido listo para entrega',
     })
   }
+
   if (currentStatus === 'delivered') {
     history.push({
       status: 'delivered',
@@ -75,14 +103,67 @@ function buildOrderHistory(createdAt: string, currentStatus: OrderStatus): Order
   return history
 }
 
-export function createOrder(): Order | null {
+function validateCartItems(cart: CartItem[]): {
+  valid: boolean
+  items?: CartItem[]
+  error?: CreateOrderError
+  message?: string
+} {
+  const validatedItems: CartItem[] = []
+
+  for (const item of cart) {
+    const currentProduct = getProductById(item.product.id)
+
+    if (!currentProduct || !currentProduct.available) {
+      return {
+        valid: false,
+        error: 'product_unavailable',
+        message: `El producto ${item.product.name} ya no está disponible.`,
+      }
+    }
+
+    if (currentProduct.price !== item.product.price) {
+      return {
+        valid: false,
+        error: 'price_changed',
+        message: `El precio de ${item.product.name} cambió. Revisa tu carrito antes de continuar.`,
+      }
+    }
+
+    validatedItems.push({
+      product: currentProduct,
+      quantity: item.quantity,
+    })
+  }
+
+  return {
+    valid: true,
+    items: validatedItems,
+  }
+}
+
+export function createOrder(): CreateOrderResult {
   const cart = getCart()
 
   if (cart.length === 0) {
-    return null
+    return {
+      success: false,
+      error: 'empty_cart',
+      message: 'Tu carrito está vacío.',
+    }
   }
 
-  const total = cart.reduce((sum, item) => {
+  const validationResult = validateCartItems(cart)
+
+  if (!validationResult.valid || !validationResult.items) {
+    return {
+      success: false,
+      error: validationResult.error,
+      message: validationResult.message,
+    }
+  }
+
+  const total = validationResult.items.reduce((sum, item) => {
     return sum + item.product.price * item.quantity
   }, 0)
 
@@ -91,7 +172,7 @@ export function createOrder(): Order | null {
 
   const order: Order = {
     id: `order-${Date.now()}`,
-    items: cart,
+    items: validationResult.items,
     total,
     status: 'created',
     createdAt: now,
@@ -109,10 +190,17 @@ export function createOrder(): Order | null {
   localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(order))
   clearCart()
 
-  return order
+  return {
+    success: true,
+    order,
+  }
 }
 
 export function getOrder(): Order | null {
+  // if (shouldSimulateFetchFailure()) {
+  //   throw new Error('Simulated fetch error')
+  // }
+
   const raw = localStorage.getItem(ORDER_STORAGE_KEY)
 
   if (!raw) {
@@ -135,4 +223,14 @@ export function getOrder(): Order | null {
   localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(updatedOrder))
 
   return updatedOrder
+}
+
+export function getLastKnownOrder(): Order | null {
+  const raw = localStorage.getItem(ORDER_STORAGE_KEY)
+
+  if (!raw) {
+    return null
+  }
+
+  return JSON.parse(raw) as Order
 }
