@@ -13,6 +13,7 @@ export interface Ticket {
   linked: boolean
 }
 
+export type ProductCategory = 'food' | 'drinks' | 'combos'
 // Producto del menú
 export interface Product {
   id: string
@@ -21,6 +22,7 @@ export interface Product {
   imageUrl?: string
   description?: string
   available: boolean
+  category: ProductCategory
 }
 
 // Item dentro del carrito
