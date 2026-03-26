@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { CartItem } from '../types/models'
 import {
-  clearCart,
   decreaseCartItemQuantity,
   getCart,
   getCartTotal,
@@ -15,6 +14,7 @@ function CartPage() {
   const navigate = useNavigate()
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [total, setTotal] = useState(0)
+  const [checkoutError, setCheckoutError] = useState('')
 
   const refreshCart = () => {
     const storedCart = getCart()
@@ -23,14 +23,18 @@ function CartPage() {
     setCartItems(storedCart)
     setTotal(storedTotal)
   }
-  const handleCheckout = () => {
-    const order = createOrder()
 
-    if (!order) {
+  const handleCheckout = () => {
+    setCheckoutError('')
+
+    const result = createOrder()
+
+    if (!result.success) {
+      setCheckoutError(result.message ?? 'No se pudo crear el pedido.')
+      refreshCart()
       return
     }
 
-    clearCart()
     navigate('/order-status')
   }
 
@@ -67,6 +71,8 @@ function CartPage() {
       <h1>Carrito</h1>
       <button onClick={() => navigate('/menu')}>Seguir comprando</button>
 
+      {checkoutError && <p>{checkoutError}</p>}
+
       {cartItems.length === 0 ? (
         <p>Tu carrito está vacío.</p>
       ) : (
@@ -91,5 +97,3 @@ function CartPage() {
 }
 
 export default CartPage
-
-

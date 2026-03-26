@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Order, OrderStatus } from '../types/models'
-import { getOrder } from '../services/orderService'
+import { getLastKnownOrder, getOrder } from '../services/orderService'
 
 function getStatusLabel(status: OrderStatus): string {
   switch (status) {
@@ -34,12 +35,35 @@ function getStatusIndex(status: OrderStatus): number {
 
 function OrderStatusPage() {
   const [order, setOrder] = useState<Order | null>(null)
+  const [errorMessage, setErrorMessage] = useState('')
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const refreshOrder = () => {
-      const storedOrder = getOrder()
-      setOrder(storedOrder)
+const refreshOrder = () => {
+  try {
+    const storedOrder = getOrder()
+
+    if (!storedOrder) {
+      setOrder(null)
+      setErrorMessage('')
+      return
     }
+
+    setOrder(storedOrder)
+    setErrorMessage('')
+  } catch {
+    const fallbackOrder = getLastKnownOrder()
+
+    if (fallbackOrder) {
+      setOrder(fallbackOrder)
+      setErrorMessage('No se pudo actualizar el estado en este momento. Mostrando el último estado conocido.')
+      return
+    }
+
+    setOrder(null)
+    setErrorMessage('No se pudo consultar el pedido.')
+  }
+}
 
     refreshOrder()
 
@@ -65,6 +89,7 @@ function OrderStatusPage() {
       <p>ID: {order.id}</p>
       <p>Total: ${order.total}</p>
       <p>Estado actual: {getStatusLabel(order.status)}</p>
+      {errorMessage && <p>{errorMessage}</p>} 
 
       <div>
         {statusSteps.map((step, index) => {
@@ -86,15 +111,21 @@ function OrderStatusPage() {
         })}
       </div>
 
-      {isFinalErrorState && (
-        <p>{getStatusLabel(order.status)}</p>
+      {order.status === 'payment_failed' && (
+        <div>
+          <p>Hubo un problema con el pago. Intenta nuevamente.</p>
+          <button onClick={() => navigate('/menu')}>
+            Volver al menú
+          </button>
+        </div>
       )}
 
       <div>
         <h2>Historial</h2>
         {order.history.map((entry) => (
           <p key={`${entry.status}-${entry.changedAt}`}>
-            {getStatusLabel(entry.status)} — {new Date(entry.changedAt).toLocaleString()}
+            {getStatusLabel(entry.status)} —{' '}
+            {new Date(entry.changedAt).toLocaleString()}
           </p>
         ))}
       </div>
@@ -103,5 +134,3 @@ function OrderStatusPage() {
 }
 
 export default OrderStatusPage
-
-

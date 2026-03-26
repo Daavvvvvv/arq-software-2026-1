@@ -10,4 +10,10 @@ export const getMenu = async (): Promise<Product[]> => {
   })
 }
 
+export function getCurrentMenu(): Product[] {
+  return mockProducts
+}
 
+export function getProductById(productId: string): Product | undefined {
+  return mockProducts.find((product) => product.id === productId)
+}

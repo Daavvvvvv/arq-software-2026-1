@@ -19,6 +19,8 @@ export interface Product {
   name: string
   price: number
   imageUrl?: string
+  description?: string
+  available: boolean
 }
 
 // Item dentro del carrito
@@ -52,5 +54,3 @@ export interface Order {
   paymentShouldFail: boolean
   history: OrderStatusHistoryItem[]
 }
-
-
