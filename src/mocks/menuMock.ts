@@ -8,6 +8,7 @@ export const mockProducts: Product[] = [
     price: 25000,
     imageUrl: 'https://via.placeholder.com/150',
     available: true,
+    category: 'food',
   },
   {
     id: '2',
@@ -16,6 +17,7 @@ export const mockProducts: Product[] = [
     price: 30000,
     imageUrl: 'https://via.placeholder.com/150',
     available: false, 
+    category: 'food',
   },
   {
     id: '3',
@@ -24,5 +26,15 @@ export const mockProducts: Product[] = [
     price: 15000,
     imageUrl: 'https://via.placeholder.com/150',
     available: true,
+    category: 'drinks',
   },
+  {
+  id: '4',
+  name: 'Combo burger + bebida',
+  description: 'Hamburguesa con bebida',
+  imageUrl: 'https://via.placeholder.com/150',
+  price: 32000,
+  available: true,
+  category: 'combos',
+}
 ]
