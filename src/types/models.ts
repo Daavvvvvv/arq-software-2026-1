@@ -29,9 +29,10 @@ export interface CartItem {
 }
 
 // Pedido
-export interface Order {
+export type Order = {
   id: string
   items: CartItem[]
   total: number
-  status: 'pending' | 'preparing' | 'delivering' | 'delivered'
+  status: 'created' | 'confirmed' | 'ready' | 'delivered'
+  createdAt: number
 }

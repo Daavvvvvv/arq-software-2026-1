@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { CartItem } from '../types/models'
-import { clearCart, getCart, getCartTotal } from '../services/cartService'
+import {
+  clearCart,
+  decreaseCartItemQuantity,
+  getCart,
+  getCartTotal,
+  increaseCartItemQuantity,
+} from '../services/cartService'
 import { createOrder } from '../services/orderService'
 
 function CartPage() {
@@ -9,18 +15,31 @@ function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [total, setTotal] = useState(0)
 
+  const refreshCart = () => {
+    const storedCart = getCart()
+    const storedTotal = getCartTotal()
+
+    setCartItems(storedCart)
+    setTotal(storedTotal)
+  }
   const handleCheckout = () => {
     createOrder()
     clearCart()
     navigate('/order-status')
   }
 
-  useEffect(() => {
-    const storedCart = getCart()
-    const storedTotal = getCartTotal()
+  const handleIncrease = (productId: string) => {
+    increaseCartItemQuantity(productId)
+    refreshCart()
+  }
 
-    setCartItems(storedCart)
-    setTotal(storedTotal)
+  const handleDecrease = (productId: string) => {
+    decreaseCartItemQuantity(productId)
+    refreshCart()
+  }
+
+  useEffect(() => {
+    refreshCart()
   }, [])
 
   return (
@@ -37,6 +56,9 @@ function CartPage() {
               <p>{item.product.name}</p>
               <p>Precio: ${item.product.price}</p>
               <p>Cantidad: {item.quantity}</p>
+
+              <button onClick={() => handleDecrease(item.product.id)}>-</button>
+              <button onClick={() => handleIncrease(item.product.id)}>+</button>
             </div>
           ))}
 

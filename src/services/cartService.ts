@@ -28,6 +28,36 @@ export function addToCart(product: Product): void {
   saveCart(cart)
 }
 
+export function increaseCartItemQuantity(productId: string): void {
+  const cart = getCart()
+
+  const item = cart.find((cartItem) => cartItem.product.id === productId)
+
+  if (!item) return
+
+  item.quantity += 1
+  saveCart(cart)
+}
+
+export function decreaseCartItemQuantity(productId: string): void {
+  const cart = getCart()
+
+  const item = cart.find((cartItem) => cartItem.product.id === productId)
+
+  if (!item) return
+
+  if (item.quantity === 1) {
+    const updatedCart = cart.filter(
+      (cartItem) => cartItem.product.id !== productId,
+    )
+    saveCart(updatedCart)
+    return
+  }
+
+  item.quantity -= 1
+  saveCart(cart)
+}
+
 export function clearCart(): void {
   localStorage.removeItem(CART_STORAGE_KEY)
 }
