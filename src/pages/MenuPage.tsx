@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Product, Ticket } from '../types/models'
 import { getMenu } from '../services/menuService'
-import { getTicket } from '../services/sessionService'
+import { getTicket, getUser } from '../services/sessionService'
 import { addToCart } from '../services/cartService'
 
 function MenuPage() {
@@ -13,6 +13,22 @@ function MenuPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
 
   useEffect(() => {
+    const storedUser = getUser()
+
+    if (!storedUser) {
+      navigate('/')
+      return
+    }
+
+    const storedTicket = getTicket()
+
+    if (!storedTicket) {
+      navigate('/link-ticket')
+      return
+    }
+
+    setTicket(storedTicket)
+
     const fetchMenu = async () => {
       const data = await getMenu()
       setProducts(data)
@@ -20,8 +36,7 @@ function MenuPage() {
     }
 
     fetchMenu()
-    setTicket(getTicket())
-  }, [])
+  }, [navigate])
 
   const handleAddToCart = (product: Product) => {
     addToCart(product)
