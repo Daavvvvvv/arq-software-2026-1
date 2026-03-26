@@ -9,6 +9,7 @@ import {
   increaseCartItemQuantity,
 } from '../services/cartService'
 import { createOrder } from '../services/orderService'
+import { getTicket, getUser } from '../services/sessionService'
 
 function CartPage() {
   const navigate = useNavigate()
@@ -23,7 +24,12 @@ function CartPage() {
     setTotal(storedTotal)
   }
   const handleCheckout = () => {
-    createOrder()
+    const order = createOrder()
+
+    if (!order) {
+      return
+    }
+
     clearCart()
     navigate('/order-status')
   }
@@ -39,8 +45,22 @@ function CartPage() {
   }
 
   useEffect(() => {
+    const storedUser = getUser()
+
+    if (!storedUser) {
+      navigate('/')
+      return
+    }
+
+    const storedTicket = getTicket()
+
+    if (!storedTicket) {
+      navigate('/link-ticket')
+      return
+    }
+
     refreshCart()
-  }, [])
+  }, [navigate])
 
   return (
     <div>

@@ -1,4 +1,3 @@
-
 // Usuario
 export interface User {
   id: string
@@ -28,11 +27,28 @@ export interface CartItem {
   quantity: number
 }
 
+export type OrderStatus =
+  | 'created'
+  | 'confirmed'
+  | 'ready'
+  | 'delivered'
+  | 'payment_failed'
+  | 'cancelled'
+
+export interface OrderStatusHistoryItem {
+  status: OrderStatus
+  changedAt: string
+  message?: string
+}
+
 // Pedido
-export type Order = {
+export interface Order {
   id: string
   items: CartItem[]
   total: number
-  status: 'created' | 'confirmed' | 'ready' | 'delivered'
-  createdAt: number
+  status: OrderStatus
+  createdAt: string
+  updatedAt: string
+  paymentShouldFail: boolean
+  history: OrderStatusHistoryItem[]
 }

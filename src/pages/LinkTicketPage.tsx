@@ -1,9 +1,18 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mockTicket } from '../mocks/sessionMock';
-import { saveTicket } from '../services/sessionService';
+import { getUser, saveTicket } from '../services/sessionService';
 
 export default function LinkTicketPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = getUser();
+
+    if (!user) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleLinkTicket = () => {
     saveTicket(mockTicket);
