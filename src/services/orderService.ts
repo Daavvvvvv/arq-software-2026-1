@@ -64,7 +64,6 @@ function buildOrderHistory(createdAt: string, currentStatus: OrderStatus): Order
       message: 'Pedido listo para entrega',
     })
   }
-
   if (currentStatus === 'delivered') {
     history.push({
       status: 'delivered',
