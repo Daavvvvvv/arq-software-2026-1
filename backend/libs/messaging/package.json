@@ -1,0 +1,12 @@
+{
+  "name": "@concert/messaging",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@aws-sdk/client-sns": "^3.0.0",
+    "@aws-sdk/client-sqs": "^3.0.0",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "reflect-metadata": "^0.1.13"
+  }
+}

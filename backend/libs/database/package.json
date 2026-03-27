@@ -1,0 +1,12 @@
+{
+  "name": "@concert/database",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "typeorm": "^0.3.17",
+    "pg": "^8.11.0",
+    "dotenv": "^16.0.0",
+    "@nestjs/common": "^10.0.0",
+    "reflect-metadata": "^0.1.13"
+  }
+}

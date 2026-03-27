@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@concert/domain": ["../../libs/domain/src/index.ts"],
+      "@concert/domain/*": ["../../libs/domain/src/*"],
+      "@concert/events": ["../../libs/events/src/index.ts"],
+      "@concert/events/*": ["../../libs/events/src/*"],
+      "@concert/messaging": ["../../libs/messaging/src/index.ts"],
+      "@concert/messaging/*": ["../../libs/messaging/src/*"],
+      "@concert/auth": ["../../libs/auth/src/index.ts"],
+      "@concert/auth/*": ["../../libs/auth/src/*"],
+      "@concert/database": ["../../libs/database/src/index.ts"],
+      "@concert/database/*": ["../../libs/database/src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

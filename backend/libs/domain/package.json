@@ -1,0 +1,9 @@
+{
+  "name": "@concert/domain",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "typeorm": "^0.3.17",
+    "reflect-metadata": "^0.1.13"
+  }
+}

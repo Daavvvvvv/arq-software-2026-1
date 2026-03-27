@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "strict": true,
+    "paths": {
+      "@concert/domain": ["libs/domain/src/index.ts"],
+      "@concert/domain/*": ["libs/domain/src/*"],
+      "@concert/events": ["libs/events/src/index.ts"],
+      "@concert/events/*": ["libs/events/src/*"],
+      "@concert/messaging": ["libs/messaging/src/index.ts"],
+      "@concert/messaging/*": ["libs/messaging/src/*"],
+      "@concert/auth": ["libs/auth/src/index.ts"],
+      "@concert/auth/*": ["libs/auth/src/*"],
+      "@concert/database": ["libs/database/src/index.ts"],
+      "@concert/database/*": ["libs/database/src/*"]
+    }
+  }
+}
