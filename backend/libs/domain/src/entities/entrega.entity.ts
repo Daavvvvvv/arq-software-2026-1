@@ -24,11 +24,11 @@ export class Entrega {
   @Column()
   pedidoId!: string;
 
-  @ManyToOne(() => Repartidor, (r) => r.entregas)
-  repartidor!: Repartidor;
+  @ManyToOne(() => Repartidor, (r) => r.entregas, { nullable: true })
+  repartidor!: Repartidor | null;
 
-  @Column()
-  repartidorId!: string;
+  @Column({ nullable: true })
+  repartidorId!: string | null;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -105,11 +105,11 @@ export class DeliveryService {
       pedido.entrega ??
       entregaRepo.create({
         pedidoId,
-        repartidorId: repartidor?.id ?? (undefined as unknown as string),
+        repartidorId: repartidor?.id ?? null,
         estado: EstadoEntrega.ASIGNADO,
       });
 
-    entrega.repartidorId = repartidor?.id ?? (undefined as unknown as string);
+    entrega.repartidorId = repartidor?.id ?? null;
     entrega.estado = EstadoEntrega.ASIGNADO;
 
     await entregaRepo.save(entrega);
