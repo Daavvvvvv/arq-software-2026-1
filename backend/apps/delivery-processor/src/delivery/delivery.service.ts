@@ -27,7 +27,7 @@ const ZONAS_ADYACENTES: Record<string, string[]> = {
   E: ['D'],
 };
 
-const AUTO_DELIVERY_DELAY_MS = 15000;
+const AUTO_DELIVERY_DELAY_MS = 5000;
 
 function normalizeOptionalUuid(value?: string | null): string | undefined {
   if (typeof value !== 'string') return undefined;
@@ -93,24 +93,23 @@ export class DeliveryService {
       }
     }
 
-    if (!repartidor) {
-      this.logger.warn(
-        `No repartidor available for zona ${pedido.zona} — operational alert`,
+    if (repartidor) {
+      await repartidorRepo.update(repartidor.id, { disponible: false });
+    } else {
+      this.logger.log(
+        `No repartidor for zona ${pedido.zona} — simulating delivery`,
       );
-      return;
     }
-
-    await repartidorRepo.update(repartidor.id, { disponible: false });
 
     const entrega =
       pedido.entrega ??
       entregaRepo.create({
         pedidoId,
-        repartidorId: repartidor.id,
+        repartidorId: repartidor?.id ?? undefined,
         estado: EstadoEntrega.ASIGNADO,
       });
 
-    entrega.repartidorId = repartidor.id;
+    entrega.repartidorId = repartidor?.id ?? undefined;
     entrega.estado = EstadoEntrega.ASIGNADO;
 
     await entregaRepo.save(entrega);
