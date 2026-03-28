@@ -1,97 +1,96 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-// Import modules from all 5 processors + shared services
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { DatabaseModule } from '@concert/database';
-import { MessagingModule } from '@concert/messaging';
 import { AuthModule } from '@concert/auth';
+import { MessagingModule } from '@concert/messaging';
 import { TelemetryModule } from '@concert/telemetry';
 
-// Controllers
-import { AuthController } from '../../../order-processor/src/auth/auth.controller';
-import { BoletasController } from '../../../order-processor/src/boletas/boletas.controller';
-import { TiendasController } from '../../../order-processor/src/tiendas/tiendas.controller';
-import { MenuController } from '../../../order-processor/src/tiendas/menu.controller';
-import { AdminController } from '../../../order-processor/src/admin/admin.controller';
-import { HealthController } from '../../../order-processor/src/health/health.controller';
-import { KitchenController } from '../../../kitchen-processor/src/kitchen/kitchen.controller';
-import { DeliveryController } from '../../../delivery-processor/src/delivery/delivery.controller';
+// ── Order Processor ────────────────────────────────────────
+import { AuthController } from '../../order-processor/src/auth/auth.controller';
+import { AuthService } from '../../order-processor/src/auth/auth.service';
+import { OrdersController } from '../../order-processor/src/orders/orders.controller';
+import { OrdersService } from '../../order-processor/src/orders/orders.service';
+import { BoletasController } from '../../order-processor/src/boletas/boletas.controller';
+import { BoletasService } from '../../order-processor/src/boletas/boletas.service';
+import { TiendasController } from '../../order-processor/src/tiendas/tiendas.controller';
+import { TiendasService } from '../../order-processor/src/tiendas/tiendas.service';
+import { MenuController } from '../../order-processor/src/tiendas/menu.controller';
+import { AdminController } from '../../order-processor/src/admin/admin.controller';
+import { AdminService } from '../../order-processor/src/admin/admin.service';
+import { HealthController } from '../../order-processor/src/health/health.controller';
 
-// Services
-import { AuthService } from '../../../order-processor/src/auth/auth.service';
-import { BoletasService } from '../../../order-processor/src/boletas/boletas.service';
-import { TiendasService } from '../../../order-processor/src/tiendas/tiendas.service';
-import { AdminService } from '../../../order-processor/src/admin/admin.service';
-import { KitchenService } from '../../../kitchen-processor/src/kitchen/kitchen.service';
-import { DeliveryService } from '../../../delivery-processor/src/delivery/delivery.service';
-import { NotificationService } from '../../../notification-service/src/notification/notification.service';
-import { PaymentService } from '../../../payment-processor/src/payment.service';
+// ── Kitchen Processor ──────────────────────────────────────
+import { KitchenController } from '../../kitchen-processor/src/kitchen/kitchen.controller';
+import { KitchenService } from '../../kitchen-processor/src/kitchen/kitchen.service';
+import { KitchenProcessor } from '../../kitchen-processor/src/kitchen/kitchen.processor';
 
-// Processors (RabbitMQ consumers)
-import { KitchenProcessor } from '../../../kitchen-processor/src/kitchen/kitchen.processor';
-import { DeliveryProcessor } from '../../../delivery-processor/src/delivery/delivery.processor';
-import { NotificationProcessor } from '../../../notification-service/src/notification/notification.processor';
-import { PaymentProcessor } from '../../../payment-processor/src/payment.processor';
+// ── Payment Processor ──────────────────────────────────────
+import { PaymentService } from '../../payment-processor/src/payment.service';
+import { PaymentProcessor } from '../../payment-processor/src/payment.processor';
+import { MockPaymentService } from '../../payment-processor/src/modules/mock/mock-payment.service';
+import { MercadoPagoModule } from '../../payment-processor/src/modules/mercadopago/mercadopago.module';
+import { StripeModule } from '../../payment-processor/src/modules/stripe/stripe.module';
 
-// Channels
-import { FcmChannel } from '../../../notification-service/src/channels/fcm.channel';
-import { EmailChannel } from '../../../notification-service/src/channels/email.channel';
-import { SmsChannel } from '../../../notification-service/src/channels/sms.channel';
+// ── Delivery Processor ─────────────────────────────────────
+import { DeliveryController } from '../../delivery-processor/src/delivery/delivery.controller';
+import { DeliveryService } from '../../delivery-processor/src/delivery/delivery.service';
+import { DeliveryProcessor } from '../../delivery-processor/src/delivery/delivery.processor';
 
-// Payment processors
-import { MercadoPagoService } from '../../../payment-processor/src/payment-methods/mercado-pago.service';
-import { StripeService } from '../../../payment-processor/src/payment-methods/stripe.service';
-import { MockPaymentService } from '../../../payment-processor/src/payment-methods/mock-payment.service';
+// ── Notification Service ───────────────────────────────────
+import { NotificationService } from '../../notification-service/src/notification/notification.service';
+import { NotificationProcessor } from '../../notification-service/src/notification/notification.processor';
+import { FcmChannel } from '../../notification-service/src/channels/fcm.channel';
+import { EmailChannel } from '../../notification-service/src/channels/email.channel';
+import { SmsChannel } from '../../notification-service/src/channels/sms.channel';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'production' ? undefined : '.env',
-    }),
-    DatabaseModule,
-    MessagingModule,
-    AuthModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     TelemetryModule,
+    DatabaseModule,
+    AuthModule,
+    MessagingModule,
+    MercadoPagoModule,
+    StripeModule,
   ],
   controllers: [
-    // Order processor controllers
+    HealthController,
     AuthController,
+    OrdersController,
     BoletasController,
     TiendasController,
     MenuController,
     AdminController,
-    HealthController,
-    // Kitchen processor controller
     KitchenController,
-    // Delivery processor controller
     DeliveryController,
   ],
   providers: [
-    // Order processor services
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Order
     AuthService,
+    OrdersService,
     BoletasService,
     TiendasService,
     AdminService,
-    // Kitchen processor services + processor
+    // Kitchen
     KitchenService,
     KitchenProcessor,
-    // Delivery processor services + processor
+    // Payment
+    MockPaymentService,
+    PaymentService,
+    PaymentProcessor,
+    // Delivery
     DeliveryService,
     DeliveryProcessor,
-    // Notification services + processor
-    NotificationService,
-    NotificationProcessor,
+    // Notification
     FcmChannel,
     EmailChannel,
     SmsChannel,
-    // Payment services + processor
-    PaymentService,
-    PaymentProcessor,
-    MercadoPagoService,
-    StripeService,
-    MockPaymentService,
+    NotificationService,
+    NotificationProcessor,
   ],
 })
 export class AppModule {}

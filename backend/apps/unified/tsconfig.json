@@ -2,12 +2,16 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
-    "baseUrl": "./src",
-    "paths": {
-      "@concert/*": ["../../libs/*/src"]
-    }
+    "rootDir": "../../"
   },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules", "**/*.spec.ts"]
+  "include": [
+    "src/**/*.ts",
+    "../../libs/**/*.ts",
+    "../../apps/order-processor/src/**/*.ts",
+    "../../apps/kitchen-processor/src/**/*.ts",
+    "../../apps/payment-processor/src/**/*.ts",
+    "../../apps/delivery-processor/src/**/*.ts",
+    "../../apps/notification-service/src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }
