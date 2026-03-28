@@ -1,7 +1,87 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { loginRequest, saveToken, saveUser } from '../services/sessionService';
 import './LoginPage.css';
+
+type UserRole = 'CONSUMER' | 'KITCHEN';
+
+type LoginResponse = {
+  accessToken: string;
+  user?: {
+    id?: string;
+    nombre?: string;
+    name?: string;
+    email?: string;
+    rol?: string;
+    role?: string;
+  };
+  id?: string;
+  nombre?: string;
+  name?: string;
+  email?: string;
+  rol?: string;
+  role?: string;
+};
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const json = atob(padded);
+
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch (error) {
+    console.error('No se pudo decodificar el JWT', error);
+    return null;
+  }
+}
+
+function normalizeRole(value: unknown): UserRole | null {
+  if (typeof value !== 'string') return null;
+
+  const normalized = value.trim().toUpperCase();
+
+  if (normalized === 'KITCHEN') return 'KITCHEN';
+  if (normalized === 'CONSUMER') return 'CONSUMER';
+
+  return null;
+}
+
+function extractRole(data: LoginResponse): UserRole {
+  const directCandidates = [
+    data.user?.rol,
+    data.user?.role,
+    data.rol,
+    data.role,
+  ];
+
+  for (const candidate of directCandidates) {
+    const parsed = normalizeRole(candidate);
+    if (parsed) return parsed;
+  }
+
+  const jwtPayload = decodeJwtPayload(data.accessToken);
+
+  if (jwtPayload) {
+    const tokenCandidates = [
+      jwtPayload['rol'],
+      jwtPayload['role'],
+      jwtPayload['userRole'],
+      jwtPayload['tipoUsuario'],
+      jwtPayload['https://example.com/role'],
+    ];
+
+    for (const candidate of tokenCandidates) {
+      const parsed = normalizeRole(candidate);
+      if (parsed) return parsed;
+    }
+  }
+
+  return 'CONSUMER';
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -18,15 +98,35 @@ export default function LoginPage() {
       setIsLoading(true);
       setErrorMessage('');
 
-      const data = await loginRequest(email, password);
+      const data = (await loginRequest(email, password)) as LoginResponse;
+
+      console.log('LOGIN RESPONSE =>', data);
 
       saveToken(data.accessToken);
 
+      const rol = extractRole(data);
+      console.log('ROL DETECTADO =>', rol);
+
+      const userId = data.user?.id ?? data.id ?? '1';
+      const userName =
+        data.user?.nombre ??
+        data.user?.name ??
+        data.nombre ??
+        data.name ??
+        'Usuario';
+      const userEmail = data.user?.email ?? data.email ?? email;
+
       saveUser({
-        id: '1',
-        name: 'Asistente',
-        email,
+        id: userId,
+        name: userName,
+        email: userEmail,
+        rol,
       });
+
+      if (rol === 'KITCHEN') {
+        navigate('/kitchen');
+        return;
+      }
 
       navigate('/link-ticket');
     } catch (error) {
@@ -40,13 +140,15 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <section className="login-card">
-        <div className="login-brand">PIKEA</div>
+        <div className="login-card__topbar">
+          <span className="login-card__brand">PIKEA</span>
+          <span className="login-card__badge">Acceso asistentes</span>
+        </div>
 
-        <h1 className="login-title">Iniciar sesión</h1>
-
-        <p className="login-subtitle">
-          Ingresa para vincular tu boleta, ver el menú del evento y seguir tu pedido.
-        </p>
+        <div className="login-card__header">
+          <p className="login-card__eyebrow">Bienvenido</p>
+          <h1 className="login-card__title">Entrar a tu cuenta</h1>
+        </div>
 
         <form className="login-form" onSubmit={handleLogin}>
           <div className="login-field">
@@ -82,7 +184,9 @@ export default function LoginPage() {
           </div>
 
           {errorMessage ? (
-            <p className="login-error">{errorMessage}</p>
+            <div className="login-alert login-alert--error">
+              {errorMessage}
+            </div>
           ) : null}
 
           <button
@@ -94,9 +198,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="login-register-prompt">
-          ¿No tienes cuenta? <Link to="/register" className="login-register-link">Regístrate aquí</Link>
-        </p>
+        <div className="login-card__footer">
+          <p className="login-card__register-text">
+            ¿No tienes cuenta?{' '}
+            <Link to="/register" className="login-card__register-link">
+              Regístrate
+            </Link>
+          </p>
+        </div>
       </section>
     </main>
   );
