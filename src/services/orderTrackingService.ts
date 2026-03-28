@@ -6,10 +6,12 @@ type BackendOrderStatus =
   | 'CONFIRMED'
   | 'READY'
   | 'DELIVERED'
+  | 'ENTREGADO'
   | 'PAYMENT_FAILED'
   | 'CANCELLED'
   | 'EN_PREPARACION'
   | 'EN_CAMINO'
+  | 'EN_ENTREGA'
   | 'PENDIENTE'
   | string
 
@@ -61,16 +63,16 @@ function normalizeStatus(status: BackendOrderStatus | undefined): OrderStatus {
       return 'created'
 
     case 'CONFIRMED':
-      return 'confirmed'
-
     case 'EN_PREPARACION':
       return 'confirmed'
 
     case 'READY':
     case 'EN_CAMINO':
+    case 'EN_ENTREGA':
       return 'ready'
 
     case 'DELIVERED':
+    case 'ENTREGADO':
       return 'delivered'
 
     case 'PAYMENT_FAILED':
@@ -126,7 +128,7 @@ function buildSyntheticHistory(
     history.push({
       status: 'ready',
       changedAt: updatedAt,
-      message: 'Pedido listo / en camino',
+      message: 'Repartidor asignado, pedido en camino',
     })
   }
 
@@ -161,7 +163,8 @@ function normalizeBackendOrder(data: BackendOrderResponse): Order {
   const rawStatus = data.status ?? data.estado
   const normalizedStatus = normalizeStatus(rawStatus)
 
-  const createdAt = data.createdAt ?? data.fechaCreacion ?? new Date().toISOString()
+  const createdAt =
+    data.createdAt ?? data.fechaCreacion ?? new Date().toISOString()
 
   const updatedAt = data.updatedAt ?? data.fechaActualizacion ?? createdAt
 
