@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { API_URL, apiFetch } from '../services/api'
+import { apiFetch } from '../services/api'
 import type { Order } from '../types/models'
 import './EventsPage.css'
 
