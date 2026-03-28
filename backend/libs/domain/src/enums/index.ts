@@ -28,4 +28,5 @@ export enum RolUsuario {
   KITCHEN = 'KITCHEN',
   DISPATCHER = 'DISPATCHER',
   VENUE_ADMIN = 'VENUE_ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
 }

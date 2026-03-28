@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { WRITE_DATA_SOURCE } from '@concert/database';
 import {
@@ -10,7 +9,8 @@ import {
   Pedido,
   Repartidor,
 } from '@concert/domain';
-import { SnsService } from '@concert/messaging';
+import { RabbitMQService } from '@concert/messaging';
+import { ordersDeliveredTotal, orderDeliveryDurationSeconds, ordersInFlight } from '@concert/telemetry';
 import { OrderDeliveredEvent } from '@concert/events';
 
 // Adjacent zones mapping for fallback
@@ -28,8 +28,7 @@ export class DeliveryService {
 
   constructor(
     @Inject(WRITE_DATA_SOURCE) private readonly ds: DataSource,
-    private readonly sns: SnsService,
-    private readonly config: ConfigService,
+    private readonly rabbitmq: RabbitMQService,
   ) {}
 
   async handleOrderReady(
@@ -67,7 +66,7 @@ export class DeliveryService {
     // Assign repartidor
     await repartidorRepo.update(repartidor.id, { disponible: false });
 
-    const entrega = await this.ds.getRepository(Entrega).save(
+    await this.ds.getRepository(Entrega).save(
       this.ds.getRepository(Entrega).create({
         pedidoId,
         repartidorId: repartidor.id,
@@ -91,8 +90,26 @@ export class DeliveryService {
   async getPedidosEnEntrega(): Promise<Pedido[]> {
     return this.ds.getRepository(Pedido).find({
       where: { estado: EstadoPedido.EN_ENTREGA },
-      relations: ['entrega', 'entrega.repartidor'],
+      relations: ['entrega', 'entrega.repartidor', 'items', 'items.producto'],
       order: { createdAt: 'ASC' },
+    });
+  }
+
+  async getDetallePedido(pedidoId: string): Promise<Pedido> {
+    const pedido = await this.ds.getRepository(Pedido).findOne({
+      where: { id: pedidoId },
+      relations: ['entrega', 'entrega.repartidor', 'items', 'items.producto'],
+    });
+    if (!pedido) throw new NotFoundException('Pedido no encontrado');
+    return pedido;
+  }
+
+  async getHistorialEntregas(): Promise<Pedido[]> {
+    return this.ds.getRepository(Pedido).find({
+      where: { estado: EstadoPedido.ENTREGADO },
+      relations: ['entrega'],
+      order: { createdAt: 'DESC' },
+      take: 20,
     });
   }
 
@@ -139,11 +156,11 @@ export class DeliveryService {
       correlationId: pedido.correlationId ?? '',
       tiempoTotal,
     };
-    await this.sns.publish(
-      this.config.get<string>('SNS_DELIVERY_EVENTS_ARN')!,
-      event as unknown as Record<string, unknown>,
-    );
+    await this.rabbitmq.publish('order.delivered', event as unknown as Record<string, unknown>);
 
+    ordersDeliveredTotal.inc();
+    orderDeliveryDurationSeconds.observe(tiempoTotal);
+    ordersInFlight.dec();
     this.logger.log(`Pedido ${pedidoId} ENTREGADO in ${tiempoTotal}s`);
   }
 }

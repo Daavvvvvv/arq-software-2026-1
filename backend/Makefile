@@ -1,4 +1,4 @@
-.PHONY: setup up down queues migrate seed dev test test-e2e reset
+.PHONY: setup up down migrate seed dev test test-e2e reset obs-up obs-down
 
 setup:
 	cp -n .env.example .env || true
@@ -9,9 +9,6 @@ up:
 
 down:
 	docker-compose -f infrastructure/docker-compose.yml down
-
-queues:
-	node infrastructure/localstack-init/setup.mjs
 
 migrate:
 	npm run migrate
@@ -31,7 +28,11 @@ test-e2e:
 reset:
 	docker-compose -f infrastructure/docker-compose.yml down -v
 	docker-compose -f infrastructure/docker-compose.yml up -d
-	sleep 10
-	node infrastructure/localstack-init/setup.mjs
 	npm run migrate
 	npm run seed
+
+obs-up:
+	docker-compose -f infrastructure/docker-compose.yml up -d prometheus loki tempo grafana
+
+obs-down:
+	docker-compose -f infrastructure/docker-compose.yml stop prometheus loki tempo grafana

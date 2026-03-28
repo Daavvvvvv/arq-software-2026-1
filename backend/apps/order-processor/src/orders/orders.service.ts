@@ -5,7 +5,6 @@ import {
   NotFoundException,
   Logger,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { WRITE_DATA_SOURCE } from '@concert/database';
@@ -13,7 +12,8 @@ import {
   Boleta, EstadoPedido, EventsLog, ItemPedido,
   Pedido, Producto, Usuario,
 } from '@concert/domain';
-import { SnsService } from '@concert/messaging';
+import { RabbitMQService } from '@concert/messaging';
+import { ordersCreatedTotal, ordersInFlight } from '@concert/telemetry';
 import { OrderValidatedEvent } from '@concert/events';
 import { CreateOrderDto } from './dto/create-order.dto';
 
@@ -23,11 +23,10 @@ export class OrdersService {
 
   constructor(
     @Inject(WRITE_DATA_SOURCE) private readonly ds: DataSource,
-    private readonly sns: SnsService,
-    private readonly config: ConfigService,
+    private readonly rabbitmq: RabbitMQService,
   ) {}
 
-  async create(dto: CreateOrderDto, usuarioId: string): Promise<{ numeroPedido: string; estado: string }> {
+  async create(dto: CreateOrderDto, usuarioId: string): Promise<{ id: string; numeroPedido: string; estado: string }> {
     const usuario = await this.ds.getRepository(Usuario).findOne({ where: { id: usuarioId } });
     if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
@@ -98,7 +97,7 @@ export class OrdersService {
       payload: { numeroPedido, total },
     });
 
-    // Publicar a SNS
+    // Publicar a RabbitMQ
     const event: OrderValidatedEvent = {
       eventType: 'order.validated',
       pedidoId: pedido.id,
@@ -114,13 +113,12 @@ export class OrdersService {
       ubicacion: { zona: dto.zona, fila: dto.fila, asiento: dto.asiento },
     };
 
-    await this.sns.publish(
-      this.config.get<string>('SNS_ORDER_EVENTS_ARN')!,
-      event as unknown as Record<string, unknown>,
-    );
+    await this.rabbitmq.publish('order.validated', event as unknown as Record<string, unknown>);
 
+    ordersCreatedTotal.inc();
+    ordersInFlight.inc();
     this.logger.log(`Order ${numeroPedido} validated and published`);
-    return { numeroPedido, estado: EstadoPedido.VALIDADO };
+    return { id: pedido.id, numeroPedido, estado: EstadoPedido.VALIDADO };
   }
 
   async findOne(id: string): Promise<Pedido> {
@@ -141,4 +139,3 @@ export class OrdersService {
     });
   }
 }
-

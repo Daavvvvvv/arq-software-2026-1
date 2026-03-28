@@ -22,14 +22,14 @@ export class OrdersController {
     return this.ordersService.create(dto, req.user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(id);
-  }
-
   @Roles(RolUsuario.CONSUMER)
   @Get('mis-pedidos')
   misPedidos(@Request() req: { user: JwtPayload }) {
     return this.ordersService.misPedidos(req.user.sub);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.ordersService.findOne(id);
   }
 }

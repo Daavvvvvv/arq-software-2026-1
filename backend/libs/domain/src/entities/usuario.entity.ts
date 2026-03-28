@@ -26,6 +26,9 @@ export class Usuario {
   @Column({ nullable: true })
   fcmToken!: string;
 
+  @Column({ nullable: true })
+  recintoId!: string;
+
   @OneToMany(() => Boleta, (b) => b.usuario)
   boletas!: Boleta[];
 

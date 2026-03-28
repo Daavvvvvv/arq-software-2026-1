@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: order-processor
+    static_configs:
+      - targets: ['host.docker.internal:3001']
+
+  - job_name: payment-processor
+    static_configs:
+      - targets: ['host.docker.internal:3002']
+
+  - job_name: kitchen-processor
+    static_configs:
+      - targets: ['host.docker.internal:3003']
+
+  - job_name: delivery-processor
+    static_configs:
+      - targets: ['host.docker.internal:3004']
+
+  - job_name: notification-service
+    static_configs:
+      - targets: ['host.docker.internal:3005']

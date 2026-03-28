@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, JwtPayload, Roles, RolesGuard } from '@concert/auth';
 import { RolUsuario } from '@concert/domain';
@@ -14,6 +14,7 @@ export class BoletasController {
 
   @Roles(RolUsuario.CONSUMER)
   @Post('vincular')
+  @HttpCode(200)
   vincular(
     @Body() dto: VincularBoletaDto,
     @Request() req: { user: JwtPayload },

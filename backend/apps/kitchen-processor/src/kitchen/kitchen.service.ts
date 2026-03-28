@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { Subject } from 'rxjs';
 import { WRITE_DATA_SOURCE } from '@concert/database';
 import { EstadoPedido, EventsLog, Pedido } from '@concert/domain';
-import { SnsService } from '@concert/messaging';
+import { RabbitMQService } from '@concert/messaging';
+import { ordersCancelledTotal, ordersInFlight } from '@concert/telemetry';
 import { OrderReadyEvent } from '@concert/events';
 
 export interface KitchenUpdate {
@@ -20,8 +20,7 @@ export class KitchenService {
 
   constructor(
     @Inject(WRITE_DATA_SOURCE) private readonly ds: DataSource,
-    private readonly sns: SnsService,
-    private readonly config: ConfigService,
+    private readonly rabbitmq: RabbitMQService,
   ) {}
 
   async handlePaymentConfirmed(pedidoId: string, correlationId: string, tenantId: string): Promise<void> {
@@ -80,10 +79,7 @@ export class KitchenService {
       tenantId: pedido.tenantId ?? '',
       correlationId: pedido.correlationId ?? '',
     };
-    await this.sns.publish(
-      this.config.get<string>('SNS_KITCHEN_EVENTS_ARN')!,
-      event as unknown as Record<string, unknown>,
-    );
+    await this.rabbitmq.publish('order.ready', event as unknown as Record<string, unknown>);
 
     this.updates$.next({ pedidoId: id, estado: EstadoPedido.LISTO, numeroPedido: pedido.numeroPedido });
     this.logger.log(`Pedido ${id} marked LISTO`);
@@ -103,6 +99,8 @@ export class KitchenService {
       payload: { reason: 'cancelled_by_kitchen' },
     });
 
+    ordersCancelledTotal.inc();
+    ordersInFlight.dec();
     this.updates$.next({ pedidoId: id, estado: EstadoPedido.CANCELADO, numeroPedido: pedido.numeroPedido });
     this.logger.log(`Pedido ${id} CANCELADO`);
   }

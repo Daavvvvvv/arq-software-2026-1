@@ -4,17 +4,19 @@ import { JwtAuthGuard } from '@concert/auth';
 import { TiendasService } from './tiendas.service';
 
 @ApiTags('tiendas')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('tiendas')
 export class TiendasController {
   constructor(private readonly tiendasService: TiendasService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.tiendasService.findAll();
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get(':id/menu')
   getMenu(@Param('id') id: string) {
     return this.tiendasService.getMenu(id);
