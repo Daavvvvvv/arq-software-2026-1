@@ -13,7 +13,7 @@ export class StripeService implements PaymentStrategy {
   constructor(private readonly config: ConfigService) {
     const key = config.get<string>('STRIPE_SECRET_KEY');
     if (key && !key.startsWith('sk_test_...')) {
-      this.stripe = new Stripe(key, { apiVersion: '2024-04-10' });
+      this.stripe = new Stripe(key, { apiVersion: '2023-10-16' });
     }
   }
 

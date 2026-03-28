@@ -1,0 +1,14 @@
+{
+  "name": "@concert/telemetry",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "nest-winston": "^1.9.4",
+    "winston": "^3.11.0",
+    "winston-loki": "^6.1.3",
+    "prom-client": "^15.1.3",
+    "reflect-metadata": "^0.1.13"
+  }
+}

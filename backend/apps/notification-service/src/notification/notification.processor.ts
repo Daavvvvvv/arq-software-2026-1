@@ -1,30 +1,30 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { SqsService } from '@concert/messaging';
+import { Injectable, Logger } from '@nestjs/common';
+import { RabbitSubscribe } from '@concert/messaging';
 import { ConcertEvent } from '@concert/events';
 import { NotificationService } from './notification.service';
 
 @Injectable()
-export class NotificationProcessor implements OnApplicationBootstrap {
+export class NotificationProcessor {
   private readonly logger = new Logger(NotificationProcessor.name);
 
-  constructor(
-    private readonly sqs: SqsService,
-    private readonly notificationService: NotificationService,
-    private readonly config: ConfigService,
-  ) {}
+  constructor(private readonly notificationService: NotificationService) {}
 
-  onApplicationBootstrap(): void {
-    const notifQueueUrl = this.config.get<string>('SQS_NOTIFICATION_QUEUE_URL')!;
-    this.sqs.startPolling(notifQueueUrl, async (body) => {
-      await this.notificationService.handleEvent(body as unknown as ConcertEvent);
-    });
+  @RabbitSubscribe({
+    exchange: 'concert-orders',
+    routingKey: '#',
+    queue: 'notification-queue',
+  })
+  async handleEvent(event: ConcertEvent): Promise<void> {
+    this.logger.log(`Notification received event: ${event.eventType}`);
+    await this.notificationService.handleEvent(event);
+  }
 
-    const dlqMonitorUrl = this.config.get<string>('SQS_DLQ_MONITOR_URL')!;
-    this.sqs.startPolling(dlqMonitorUrl, async (body) => {
-      await this.notificationService.handleDlqAlert(body);
-    });
-
-    this.logger.log('Notification processor polling started');
+  @RabbitSubscribe({
+    exchange: 'concert-orders',
+    routingKey: '#',
+    queue: 'dlq-monitor-queue',
+  })
+  async handleDlqAlert(body: Record<string, unknown>): Promise<void> {
+    await this.notificationService.handleDlqAlert(body);
   }
 }

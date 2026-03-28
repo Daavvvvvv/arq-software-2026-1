@@ -28,7 +28,9 @@
       "@concert/auth": ["libs/auth/src/index.ts"],
       "@concert/auth/*": ["libs/auth/src/*"],
       "@concert/database": ["libs/database/src/index.ts"],
-      "@concert/database/*": ["libs/database/src/*"]
+      "@concert/database/*": ["libs/database/src/*"],
+      "@concert/telemetry": ["libs/telemetry/src/index.ts"],
+      "@concert/telemetry/*": ["libs/telemetry/src/*"]
     }
   }
 }

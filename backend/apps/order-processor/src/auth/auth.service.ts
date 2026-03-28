@@ -1,10 +1,10 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { WRITE_DATA_SOURCE } from '@concert/database';
-import { Usuario } from '@concert/domain';
+import { Usuario, RolUsuario } from '@concert/domain';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +13,21 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
   ) {}
+
+  async register(email: string, password: string, nombre?: string): Promise<{ accessToken: string; refreshToken: string }> {
+    const exists = await this.ds.getRepository(Usuario).findOne({ where: { email } });
+    if (exists) throw new BadRequestException('El email ya está registrado');
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await this.ds.getRepository(Usuario).save(
+      this.ds.getRepository(Usuario).create({
+        email,
+        passwordHash,
+        nombre,
+        rol: RolUsuario.CONSUMER,
+      }),
+    );
+    return this.generateTokens(user);
+  }
 
   async login(email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.ds.getRepository(Usuario).findOne({ where: { email } });
@@ -29,7 +44,7 @@ export class AuthService {
   }
 
   private generateTokens(user: Usuario): { accessToken: string; refreshToken: string } {
-    const payload = { sub: user.id, email: user.email, rol: user.rol };
+    const payload = { sub: user.id, email: user.email, rol: user.rol, recintoId: user.recintoId ?? undefined };
     const accessToken = this.jwt.sign(payload, {
       expiresIn: this.config.get<string>('JWT_EXPIRES_IN') ?? '15m',
     });

@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { KitchenService } from './kitchen.service';
 import { WRITE_DATA_SOURCE } from '@concert/database';
-import { SnsService } from '@concert/messaging';
+import { RabbitMQService } from '@concert/messaging';
 import { EstadoPedido } from '@concert/domain';
 
 const mockRepo = {
@@ -20,7 +19,7 @@ const mockRepo = {
 };
 
 const mockDs = { getRepository: jest.fn().mockReturnValue(mockRepo) };
-const mockSns = { publish: jest.fn().mockResolvedValue('msg-id') };
+const mockRabbitmq = { publish: jest.fn().mockResolvedValue(undefined) };
 
 describe('KitchenService', () => {
   let service: KitchenService;
@@ -30,8 +29,7 @@ describe('KitchenService', () => {
       providers: [
         KitchenService,
         { provide: WRITE_DATA_SOURCE, useValue: mockDs },
-        { provide: SnsService, useValue: mockSns },
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('arn:test') } },
+        { provide: RabbitMQService, useValue: mockRabbitmq },
       ],
     }).compile();
 
@@ -56,8 +54,8 @@ describe('KitchenService', () => {
       tenantId: 'tenant-1',
     });
     await service.marcarListo('pedido-1');
-    expect(mockSns.publish).toHaveBeenCalledWith(
-      expect.any(String),
+    expect(mockRabbitmq.publish).toHaveBeenCalledWith(
+      'order.ready',
       expect.objectContaining({ eventType: 'order.ready' }),
     );
   });

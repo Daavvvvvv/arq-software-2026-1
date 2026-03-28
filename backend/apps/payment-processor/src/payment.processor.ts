@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { Inject } from '@nestjs/common';
@@ -7,19 +7,18 @@ import { WRITE_DATA_SOURCE } from '@concert/database';
 import {
   EstadoPago, EstadoPedido, EventsLog, Pago, Pedido,
 } from '@concert/domain';
-import { SqsService, SnsService } from '@concert/messaging';
+import { RabbitMQService, RabbitSubscribe } from '@concert/messaging';
 import { OrderValidatedEvent, PaymentConfirmedEvent, PaymentFailedEvent } from '@concert/events';
 import { PaymentService } from './payment.service';
 
 @Injectable()
-export class PaymentProcessor implements OnApplicationBootstrap {
+export class PaymentProcessor {
   private readonly logger = new Logger(PaymentProcessor.name);
   private readonly redis: Redis;
 
   constructor(
     @Inject(WRITE_DATA_SOURCE) private readonly ds: DataSource,
-    private readonly sqs: SqsService,
-    private readonly sns: SnsService,
+    private readonly rabbitmq: RabbitMQService,
     private readonly paymentService: PaymentService,
     private readonly config: ConfigService,
   ) {
@@ -29,15 +28,12 @@ export class PaymentProcessor implements OnApplicationBootstrap {
     });
   }
 
-  onApplicationBootstrap(): void {
-    const queueUrl = this.config.get<string>('SQS_PAYMENT_QUEUE_URL')!;
-    this.sqs.startPolling(queueUrl, async (body) => {
-      await this.handleMessage(body as unknown as OrderValidatedEvent);
-    });
-    this.logger.log('Payment processor polling started');
-  }
-
-  private async handleMessage(event: OrderValidatedEvent): Promise<void> {
+  @RabbitSubscribe({
+    exchange: 'concert-orders',
+    routingKey: 'order.validated',
+    queue: 'payment-queue',
+  })
+  async handleOrderValidated(event: OrderValidatedEvent): Promise<void> {
     if (event.eventType !== 'order.validated') return;
 
     const { pedidoId, correlationId, tenantId, usuarioId } = event;
@@ -93,10 +89,7 @@ export class PaymentProcessor implements OnApplicationBootstrap {
         referencia: result.referencia,
         monto: Number(pedido.total),
       };
-      await this.sns.publish(
-        this.config.get<string>('SNS_PAYMENT_EVENTS_ARN')!,
-        confirmEvent as unknown as Record<string, unknown>,
-      );
+      await this.rabbitmq.publish('payment.confirmed', confirmEvent as unknown as Record<string, unknown>);
 
       await this.redis.set(idemKey, JSON.stringify(result), 'EX', 86400);
       this.logger.log(`Payment confirmed for pedido ${pedidoId}`);
@@ -109,11 +102,8 @@ export class PaymentProcessor implements OnApplicationBootstrap {
         correlationId,
         motivo: result.motivo ?? 'Payment rejected',
       };
-      await this.sns.publish(
-        this.config.get<string>('SNS_PAYMENT_EVENTS_ARN')!,
-        failEvent as unknown as Record<string, unknown>,
-      );
-      // Do not delete message → SQS retries → DLQ after 3 attempts
+      await this.rabbitmq.publish('payment.failed', failEvent as unknown as Record<string, unknown>);
+      // Throwing re-queues the message → DLQ after max retries
       throw new Error(`Payment failed for ${pedidoId}: ${result.motivo}`);
     }
   }

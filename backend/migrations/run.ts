@@ -4,11 +4,12 @@ dotenv.config();
 
 import { writeDatasource } from '../libs/database/src/write-datasource';
 import { InitialSchema1700000000001 } from './001_initial_schema';
+import { SuperAdmin1700000000002 } from './002_super_admin';
 
 async function runMigrations(): Promise<void> {
   // Register migrations manually
   writeDatasource.setOptions({
-    migrations: [InitialSchema1700000000001],
+    migrations: [InitialSchema1700000000001, SuperAdmin1700000000002],
   });
 
   await writeDatasource.initialize();

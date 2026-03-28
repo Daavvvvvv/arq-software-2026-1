@@ -18,6 +18,18 @@ export class DeliveryController {
   }
 
   @Roles(RolUsuario.DISPATCHER)
+  @Get('historial')
+  getHistorial() {
+    return this.deliveryService.getHistorialEntregas();
+  }
+
+  @Roles(RolUsuario.DISPATCHER)
+  @Get('pedidos/:id')
+  getDetalle(@Param('id') id: string) {
+    return this.deliveryService.getDetallePedido(id);
+  }
+
+  @Roles(RolUsuario.DISPATCHER)
   @Patch('pedidos/:id/entregar')
   @HttpCode(200)
   entregar(@Param('id') id: string) {

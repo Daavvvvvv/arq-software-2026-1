@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersService } from './orders.service';
-import { ConfigService } from '@nestjs/config';
 import { WRITE_DATA_SOURCE } from '@concert/database';
-import { SnsService } from '@concert/messaging';
+import { RabbitMQService } from '@concert/messaging';
 import { EstadoPedido } from '@concert/domain';
 
 const mockDs = {
@@ -14,7 +13,7 @@ const mockDs = {
   }),
 };
 
-const mockSns = { publish: jest.fn().mockResolvedValue('msg-id') };
+const mockRabbitmq = { publish: jest.fn().mockResolvedValue(undefined) };
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -24,8 +23,7 @@ describe('OrdersService', () => {
       providers: [
         OrdersService,
         { provide: WRITE_DATA_SOURCE, useValue: mockDs },
-        { provide: SnsService, useValue: mockSns },
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('arn:test') } },
+        { provide: RabbitMQService, useValue: mockRabbitmq },
       ],
     }).compile();
 
@@ -61,8 +59,8 @@ describe('OrdersService', () => {
     );
 
     expect(result.estado).toBe(EstadoPedido.VALIDADO);
-    expect(mockSns.publish).toHaveBeenCalledWith(
-      expect.any(String),
+    expect(mockRabbitmq.publish).toHaveBeenCalledWith(
+      'order.validated',
       expect.objectContaining({ eventType: 'order.validated' }),
     );
   });
