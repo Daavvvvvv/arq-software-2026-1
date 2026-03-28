@@ -96,7 +96,7 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiFetch<Tienda[]>('/tiendas')
+      const data = await apiFetch<Tienda[]>('/admin/tiendas')
       setTiendas(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading tiendas')
@@ -109,7 +109,7 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiFetch<Producto[]>(`/tiendas/${tiendaId}/productos`)
+      const data = await apiFetch<Producto[]>(`/admin/tiendas/${tiendaId}/productos`)
       setProductos(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading productos')
@@ -127,12 +127,13 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      await apiFetch(`/tiendas/${selectedTienda}/productos`, {
+      await apiFetch(`/admin/productos`, {
         method: 'POST',
         body: JSON.stringify({
           nombre: newProductForm.nombre,
           precio: parseFloat(newProductForm.precio),
           stock: parseInt(newProductForm.stock),
+          tiendaId: selectedTienda,
           disponible: newProductForm.disponible,
         }),
       })
@@ -151,8 +152,8 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      await apiFetch(`/tiendas/${selectedTienda}/productos/${productoId}`, {
-        method: 'PATCH',
+      await apiFetch(`/admin/productos/${productoId}`, {
+        method: 'PUT',
         body: JSON.stringify(updates),
       })
       setEditingProductId(null)
@@ -170,7 +171,7 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      await apiFetch(`/tiendas/${selectedTienda}/productos/${productoId}`, {
+      await apiFetch(`/admin/productos/${productoId}`, {
         method: 'DELETE',
       })
       await loadProductos(selectedTienda)
@@ -185,7 +186,7 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiFetch<Evento[]>('/eventos')
+      const data = await apiFetch<Evento[]>('/admin/eventos')
       setEventos(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading eventos')
@@ -203,7 +204,7 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      await apiFetch('/eventos', {
+      await apiFetch('/admin/eventos', {
         method: 'POST',
         body: JSON.stringify({
           nombre: newEventoForm.nombre,
@@ -225,9 +226,8 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      await apiFetch(`/eventos/${eventoId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ activo: !currentStatus }),
+      await apiFetch(`/admin/eventos/${eventoId}/activar`, {
+        method: 'PUT',
       })
       await loadEventos()
     } catch (err) {
@@ -243,7 +243,7 @@ export default function AdminPage() {
     try {
       setLoading(true)
       setError(null)
-      await apiFetch(`/eventos/${eventoId}`, {
+      await apiFetch(`/admin/eventos/${eventoId}`, {
         method: 'DELETE',
       })
       await loadEventos()
@@ -257,7 +257,7 @@ export default function AdminPage() {
   async function loadMetricas() {
     try {
       setError(null)
-      const data = await apiFetch<MetricasData>('/metricas')
+      const data = await apiFetch<MetricasData>('/admin/metricas')
       setMetricas(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading metricas')
