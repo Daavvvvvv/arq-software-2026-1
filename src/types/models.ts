@@ -1,5 +1,5 @@
 // Usuario
-export type UserRole = 'CONSUMER' | 'KITCHEN'
+export type UserRole = 'CONSUMER' | 'KITCHEN' | 'VENUE_ADMIN' | 'SUPER_ADMIN' | 'DISPATCHER'
 
 export interface User {
   id: string

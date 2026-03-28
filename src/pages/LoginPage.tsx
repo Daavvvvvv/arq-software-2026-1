@@ -128,6 +128,11 @@ export default function LoginPage() {
         return;
       }
 
+      if (rol === 'VENUE_ADMIN' || rol === 'SUPER_ADMIN') {
+        navigate('/admin');
+        return;
+      }
+
       navigate('/link-ticket');
     } catch (error) {
       console.error(error);

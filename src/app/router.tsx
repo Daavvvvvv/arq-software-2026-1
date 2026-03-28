@@ -8,6 +8,7 @@ import OrderStatusPage from '../pages/OrderStatusPage'
 import KitchenPage from '../pages/KitchenPage'
 import EventsPage from '../pages/EventsPage'
 import MetricsPage from '../pages/MetricsPage'
+import AdminPage from '../pages/AdminPage'
 
 export const router = createBrowserRouter([
   {
@@ -45,5 +46,9 @@ export const router = createBrowserRouter([
   {
     path: '/metrics',
     element: <MetricsPage />,
+  },
+  {
+    path: '/admin',
+    element: <AdminPage />,
   },
 ])
