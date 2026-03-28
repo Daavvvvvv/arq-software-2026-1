@@ -46,6 +46,9 @@ function normalizeRole(value: unknown): UserRole | null {
 
   if (normalized === 'KITCHEN') return 'KITCHEN';
   if (normalized === 'CONSUMER') return 'CONSUMER';
+  if (normalized === 'VENUE_ADMIN') return 'VENUE_ADMIN';
+  if (normalized === 'SUPER_ADMIN') return 'SUPER_ADMIN';
+  if (normalized === 'DISPATCHER') return 'DISPATCHER';
 
   return null;
 }

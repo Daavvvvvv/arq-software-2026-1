@@ -49,7 +49,6 @@ export default function AdminPage() {
 
   // Eventos state
   const [eventos, setEventos] = useState<Evento[]>([])
-  const [editingEventoId, setEditingEventoId] = useState<string | null>(null)
   const [newEventoForm, setNewEventoForm] = useState({ nombre: '', artista: '', fecha: '' })
 
   // Metricas state
