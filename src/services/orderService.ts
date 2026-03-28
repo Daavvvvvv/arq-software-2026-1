@@ -1,6 +1,8 @@
 import type { CartItem, Order, OrderStatus, OrderStatusHistoryItem } from '../types/models'
 import { getCart, clearCart } from './cartService'
-import { getProductById } from './menuService'
+import { getMenu, getProductById } from './menuService'
+import { getAuthHeaders } from './sessionService'
+import { getTicket } from './sessionService'
 
 const ORDER_STORAGE_KEY = 'app_order'
 
@@ -43,10 +45,6 @@ function getOrderStatusByElapsedTime(
 }
 
 function shouldSimulatePaymentFailure(): boolean {
-  return Math.random() < 0.2
-}
-
-function shouldSimulateFetchFailure(): boolean {
   return Math.random() < 0.2
 }
 
@@ -142,7 +140,7 @@ function validateCartItems(cart: CartItem[]): {
   }
 }
 
-export function createOrder(): CreateOrderResult {
+export async function createOrder(): Promise<CreateOrderResult> {
   const cart = getCart()
 
   if (cart.length === 0) {
@@ -153,54 +151,72 @@ export function createOrder(): CreateOrderResult {
     }
   }
 
-  const validationResult = validateCartItems(cart)
+  try {
+    const ticket = getTicket()
 
-  if (!validationResult.valid || !validationResult.items) {
+    if (!ticket) {
+      return {
+        success: false,
+        message: 'No tienes una boleta vinculada.',
+      }
+    }
+
+    const payload = {
+      items: cart.map((item) => ({
+        productoId: item.product.id,
+        cantidad: item.quantity,
+      })),
+      zona: ticket.zona,
+      fila: ticket.fila,
+      asiento: ticket.asiento,
+    }
+
+    const response = await fetch('http://localhost:3001/orders', {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+
+      return {
+        success: false,
+        message: errorText || 'Error al crear el pedido',
+      }
+    }
+
+    const data = await response.json()
+
+    
+    localStorage.setItem(
+      ORDER_STORAGE_KEY,
+      JSON.stringify({
+        numeroPedido: data.numeroPedido,
+        estado: data.estado,
+        createdAt: new Date().toISOString(),
+      })
+    )
+
+    clearCart()
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error(error)
+
     return {
       success: false,
-      error: validationResult.error,
-      message: validationResult.message,
+      message: 'Error de conexión con el servidor',
     }
-  }
-
-  const total = validationResult.items.reduce((sum, item) => {
-    return sum + item.product.price * item.quantity
-  }, 0)
-
-  const now = new Date().toISOString()
-  const paymentShouldFail = shouldSimulatePaymentFailure()
-
-  const order: Order = {
-    id: `order-${Date.now()}`,
-    items: validationResult.items,
-    total,
-    status: 'created',
-    createdAt: now,
-    updatedAt: now,
-    paymentShouldFail,
-    history: [
-      {
-        status: 'created',
-        changedAt: now,
-        message: 'Pedido creado',
-      },
-    ],
-  }
-
-  localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(order))
-  clearCart()
-
-  return {
-    success: true,
-    order,
   }
 }
 
 export function getOrder(): Order | null {
-  // if (shouldSimulateFetchFailure()) {
-  //   throw new Error('Simulated fetch error')
-  // }
-
   const raw = localStorage.getItem(ORDER_STORAGE_KEY)
 
   if (!raw) {

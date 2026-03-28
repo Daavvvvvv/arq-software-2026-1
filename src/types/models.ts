@@ -11,6 +11,9 @@ export interface Ticket {
   eventName: string
   seat: string
   linked: boolean
+  zona?: string
+  fila?: string
+  asiento?: string
 }
 
 export type ProductCategory = 'food' | 'drinks' | 'combos'

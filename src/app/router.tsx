@@ -1,11 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom'
+import RegisterPage from '../pages/RegisterPage';
 import LoginPage from '../pages/LoginPage'
 import LinkTicketPage from '../pages/LinkTicketPage'
 import MenuPage from '../pages/MenuPage'
 import CartPage from '../pages/CartPage'
 import OrderStatusPage from '../pages/OrderStatusPage'
+import KitchenPage from '../pages/KitchenPage'
 
 export const router = createBrowserRouter([
+  {
+    path: '/register',
+    element: <RegisterPage />,
+  },
   {
     path: '/',
     element: <LoginPage />,
@@ -25,5 +31,9 @@ export const router = createBrowserRouter([
   {
     path: '/order-status',
     element: <OrderStatusPage />,
+  },
+  {
+    path: '/kitchen',
+    element: <KitchenPage />,
   },
 ])

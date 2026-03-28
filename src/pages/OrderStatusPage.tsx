@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Order, OrderStatus, OrderStatusHistoryItem } from '../types/models'
-import { getLastKnownOrder, getOrder } from '../services/orderService'
+import {
+  getBackendOrderById,
+  getLastCreatedOrderId,
+  getLastKnownBackendOrder,
+} from '../services/orderTrackingService'
 import { getTicket } from '../services/sessionService'
 import './OrderStatusPage.css'
 
@@ -132,20 +136,31 @@ function OrderStatusPage() {
   const ticket = getTicket()
 
   useEffect(() => {
-    const refreshOrder = () => {
+    const orderId = getLastCreatedOrderId()
+
+    if (!orderId) {
+      const fallbackOrder = getLastKnownBackendOrder()
+
+      if (fallbackOrder) {
+        setOrder(fallbackOrder)
+        setErrorMessage(
+          'No encontramos el identificador del pedido. Mostrando el último estado conocido.'
+        )
+        return
+      }
+
+      setOrder(null)
+      setErrorMessage('')
+      return
+    }
+
+    const refreshOrder = async () => {
       try {
-        const storedOrder = getOrder()
-
-        if (!storedOrder) {
-          setOrder(null)
-          setErrorMessage('')
-          return
-        }
-
-        setOrder(storedOrder)
+        const backendOrder = await getBackendOrderById(orderId)
+        setOrder(backendOrder)
         setErrorMessage('')
       } catch {
-        const fallbackOrder = getLastKnownOrder()
+        const fallbackOrder = getLastKnownBackendOrder()
 
         if (fallbackOrder) {
           setOrder(fallbackOrder)
@@ -160,11 +175,11 @@ function OrderStatusPage() {
       }
     }
 
-    refreshOrder()
+    void refreshOrder()
 
     const intervalId = window.setInterval(() => {
-      refreshOrder()
-    }, 1000)
+      void refreshOrder()
+    }, 3000)
 
     return () => window.clearInterval(intervalId)
   }, [])
@@ -209,7 +224,9 @@ function OrderStatusPage() {
         <header className="order-status-header">
           <div className="order-status-header__top">
             <span className="order-status-header__meta">
-              {ticket?.seat ?? 'Tu asiento'}
+              {ticket
+                ? `Zona ${ticket.zona} • Fila ${ticket.fila} • Asiento ${ticket.asiento}`
+                : 'Tu asiento'}
             </span>
           </div>
         </header>

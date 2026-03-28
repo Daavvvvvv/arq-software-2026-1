@@ -1,0 +1,70 @@
+.link-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #071024 0%, #0b1633 100%);
+}
+
+.link-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(9, 17, 37, 0.96);
+  border-radius: 24px;
+  padding: 32px 24px;
+  color: white;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.link-title {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.link-subtitle {
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+}
+
+.link-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.link-input {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-size: 14px;
+}
+
+.link-input:focus {
+  outline: none;
+  border-color: #ffd54a;
+}
+
+.link-button {
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #ffd54a;
+  color: #101726;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.link-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.link-error {
+  font-size: 13px;
+  color: #ff8e8e;
+}
