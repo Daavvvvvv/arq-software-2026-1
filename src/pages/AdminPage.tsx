@@ -222,7 +222,7 @@ export default function AdminPage() {
     }
   }
 
-  async function toggleEvento(eventoId: string, currentStatus: boolean) {
+  async function toggleEvento(eventoId: string, _currentStatus: boolean) {
     try {
       setLoading(true)
       setError(null)
