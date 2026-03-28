@@ -25,7 +25,7 @@ COPY apps/ apps/
 COPY libs/ libs/
 COPY migrations/ migrations/
 COPY scripts/ scripts/
-RUN npx tsc -p apps/unified/tsconfig.json
+RUN npx tsc -p apps/unified/tsconfig.json && npx tsc-alias -p apps/unified/tsconfig.json
 
 # ── Stage 3: Production image ─────────────────────────────
 FROM node:20-alpine AS runner
