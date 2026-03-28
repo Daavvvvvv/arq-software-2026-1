@@ -7,7 +7,7 @@ export async function apiFetch<T = unknown>(
   options?: RequestInit,
 ): Promise<T> {
   const url = `${API_URL}${path}`;
-  const token = localStorage.getItem('auth_token');
+  const token = localStorage.getItem('app_token');
 
   const res = await fetch(url, {
     ...options,

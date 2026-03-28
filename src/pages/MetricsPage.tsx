@@ -53,7 +53,7 @@ function MetricsPage() {
   const fetchMetrics = async () => {
     try {
       setError(null)
-      const token = localStorage.getItem('auth_token')
+      const token = localStorage.getItem('app_token')
 
       if (!token) {
         setError('No autorizado. Por favor inicia sesión.')
