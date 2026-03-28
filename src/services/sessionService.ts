@@ -1,4 +1,5 @@
 import type { Ticket, User } from '../types/models';
+import { API_URL } from './api';
 
 const USER_STORAGE_KEY = 'app_user';
 const TICKET_STORAGE_KEY = 'app_ticket';
@@ -37,7 +38,7 @@ export function getToken(): string | null {
 }
 
 export async function loginRequest(email: string, password: string) {
-  const response = await fetch('http://localhost:3001/auth/login', {
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ type RegisterRequestBody = {
 };
 
 export async function registerRequest(body: RegisterRequestBody) {
-  const response = await fetch('http://localhost:3001/auth/register', {
+  const response = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

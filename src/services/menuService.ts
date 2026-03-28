@@ -1,5 +1,6 @@
 import type { Product, ProductCategory } from '../types/models'
 import { getAuthHeaders } from './sessionService'
+import { API_URL } from './api'
 
 type BackendStore = {
   id?: string | number
@@ -77,7 +78,7 @@ function normalizeProduct(item: BackendMenuItem): Product {
 }
 
 async function fetchStores(): Promise<BackendStore[]> {
-  const response = await fetch('http://localhost:3001/tiendas', {
+  const response = await fetch(`${API_URL}/tiendas`, {
     method: 'GET',
     headers: getAuthHeaders(),
   })
@@ -96,7 +97,7 @@ async function fetchStores(): Promise<BackendStore[]> {
 }
 
 async function fetchStoreMenu(storeId: string): Promise<BackendMenuItem[]> {
-  const response = await fetch(`http://localhost:3001/tiendas/${storeId}/menu`, {
+  const response = await fetch(`${API_URL}/tiendas/${storeId}/menu`, {
     method: 'GET',
     headers: getAuthHeaders(),
   })

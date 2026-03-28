@@ -1,7 +1,8 @@
 import { getAuthHeaders } from './sessionService';
+import { API_URL } from './api';
 
 export async function linkTicketRequest(codigoQR: string) {
-  const response = await fetch('http://localhost:3001/boletas/vincular', {
+  const response = await fetch(`${API_URL}/boletas/vincular`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ codigoQR }),

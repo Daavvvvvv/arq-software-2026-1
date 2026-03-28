@@ -2,6 +2,7 @@ import type { Order, OrderStatus, OrderStatusHistoryItem } from '../types/models
 import { getCart, clearCart } from './cartService'
 import { getAuthHeaders } from './sessionService'
 import { getTicket } from './sessionService'
+import { API_URL } from './api'
 
 const ORDER_STORAGE_KEY = 'app_order'
 
@@ -127,7 +128,7 @@ export async function createOrder(): Promise<CreateOrderResult> {
       asiento: ticket.asiento,
     }
 
-    const response = await fetch('http://localhost:3001/orders', {
+    const response = await fetch(`${API_URL}/orders`, {
       method: 'POST',
       headers: {
         ...getAuthHeaders(),
