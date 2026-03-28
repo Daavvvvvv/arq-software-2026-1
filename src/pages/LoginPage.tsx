@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginRequest, saveToken, saveUser } from '../services/sessionService';
+import type { UserRole } from '../types/models';
 import './LoginPage.css';
-
-type UserRole = 'CONSUMER' | 'KITCHEN';
 
 type LoginResponse = {
   accessToken: string;
