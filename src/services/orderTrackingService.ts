@@ -48,7 +48,7 @@ type BackendOrderResponse = {
 
 const LAST_KNOWN_BACKEND_ORDER_KEY = 'app_order_backend_last_known'
 const LAST_CREATED_ORDER_ID_KEY = 'app_last_order_id'
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
+import { API_URL as API_BASE_URL } from './api'
 
 function buildOrderStatusUrl(orderId: string) {
   return `${API_BASE_URL}/orders/${orderId}`

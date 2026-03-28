@@ -1,7 +1,8 @@
 import type { KitchenOrder } from '../types/kitchen'
 import { getAuthHeaders } from './sessionService'
+import { API_URL } from './api'
 
-const KITCHEN_BASE_URL = 'http://localhost:3003/cocina'
+const KITCHEN_BASE_URL = `${API_URL}/cocina`
 
 function extractSeatData(order: Record<string, unknown>) {
   const ubicacion = order.ubicacion as

@@ -16,8 +16,12 @@ let sdk: NodeSDK | null = null;
 export function initTracing(serviceName: string): void {
   if (sdk) return;
 
-  const otlpBase =
-    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://localhost:4318';
+  const otlpBase = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+
+  if (!otlpBase) {
+    console.log(`[OTel] No OTEL_EXPORTER_OTLP_ENDPOINT set — tracing disabled`);
+    return;
+  }
 
   sdk = new NodeSDK({
     resource: new Resource({

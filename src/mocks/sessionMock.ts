@@ -4,6 +4,7 @@ export const mockUser: User = {
   id: 'user-1',
   name: 'Daniela',
   email: 'daniela@example.com',
+  rol: 'CONSUMER',
 }
 
 export const mockTicket: Ticket = {

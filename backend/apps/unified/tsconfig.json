@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "../../"
+  },
+  "include": [
+    "src/**/*.ts",
+    "../../libs/**/*.ts",
+    "../../apps/order-processor/src/**/*.ts",
+    "../../apps/kitchen-processor/src/**/*.ts",
+    "../../apps/payment-processor/src/**/*.ts",
+    "../../apps/delivery-processor/src/**/*.ts",
+    "../../apps/notification-service/src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+}

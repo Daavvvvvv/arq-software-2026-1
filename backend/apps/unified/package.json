@@ -1,0 +1,17 @@
+{
+  "name": "@concert/unified",
+  "version": "1.0.0",
+  "scripts": {
+    "start:dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/main.ts",
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "start:prod": "node dist/main.js"
+  },
+  "dependencies": {
+    "@concert/auth": "*",
+    "@concert/database": "*",
+    "@concert/domain": "*",
+    "@concert/events": "*",
+    "@concert/messaging": "*",
+    "@concert/telemetry": "*"
+  }
+}

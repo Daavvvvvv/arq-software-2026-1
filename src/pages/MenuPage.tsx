@@ -9,6 +9,7 @@ import {
   getCart,
   getCartTotal,
 } from '../services/cartService'
+import { getLastCreatedOrderId } from '../services/orderTrackingService'
 import './MenuPage.css'
 
 const categoryOptions: Array<{
@@ -27,7 +28,7 @@ function MenuPage() {
   const [loading, setLoading] = useState(true)
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState('')
-  const [feedbackType, setFeedbackType] = useState<'success' | 'error'>(
+  const [, setFeedbackType] = useState<'success' | 'error'>(
     'success'
   )
   const [cartItemsCount, setCartItemsCount] = useState(0)
@@ -37,6 +38,7 @@ function MenuPage() {
   const [productQuantities, setProductQuantities] = useState<
     Record<string, number>
   >({})
+  const [hasActiveOrder, setHasActiveOrder] = useState(false)
 
   const refreshCartSummary = () => {
     const currentCart = getCart()
@@ -70,6 +72,7 @@ function MenuPage() {
 
     setTicket(storedTicket)
     refreshCartSummary()
+    setHasActiveOrder(!!getLastCreatedOrderId())
 
     const fetchMenu = async () => {
       try {
@@ -299,6 +302,15 @@ function MenuPage() {
               )
             })}
           </section>
+        )}
+
+        {hasActiveOrder && (
+          <button
+            className="menu-order-status-btn"
+            onClick={() => navigate('/order-status')}
+          >
+            📦 Ver estado de mi pedido
+          </button>
         )}
 
         {cartItemsCount > 0 && (
