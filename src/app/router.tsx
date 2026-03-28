@@ -6,6 +6,8 @@ import MenuPage from '../pages/MenuPage'
 import CartPage from '../pages/CartPage'
 import OrderStatusPage from '../pages/OrderStatusPage'
 import KitchenPage from '../pages/KitchenPage'
+import EventsPage from '../pages/EventsPage'
+import MetricsPage from '../pages/MetricsPage'
 
 export const router = createBrowserRouter([
   {
@@ -35,5 +37,13 @@ export const router = createBrowserRouter([
   {
     path: '/kitchen',
     element: <KitchenPage />,
+  },
+  {
+    path: '/events',
+    element: <EventsPage />,
+  },
+  {
+    path: '/metrics',
+    element: <MetricsPage />,
   },
 ])
