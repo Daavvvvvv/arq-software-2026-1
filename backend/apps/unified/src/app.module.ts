@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { HttpThrottlerGuard } from './http-throttler.guard';
 import { DatabaseModule } from '@concert/database';
 import { AuthModule } from '@concert/auth';
 import { MessagingModule } from '@concert/messaging';
@@ -68,7 +69,7 @@ import { SmsChannel } from '../../notification-service/src/channels/sms.channel'
     DeliveryController,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: HttpThrottlerGuard },
     // Order
     AuthService,
     OrdersService,
