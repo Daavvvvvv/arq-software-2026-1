@@ -3,4 +3,5 @@ export interface OrderReadyEvent {
   pedidoId: string;
   tenantId: string;
   correlationId: string;
+  usuarioId: string;
 }

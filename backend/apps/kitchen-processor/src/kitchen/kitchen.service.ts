@@ -76,10 +76,14 @@ export class KitchenService {
     const event: OrderReadyEvent = {
       eventType: 'order.ready',
       pedidoId: id,
-      tenantId: pedido.tenantId ?? '',
-      correlationId: pedido.correlationId ?? '',
+      tenantId: pedido.tenantId,
+      correlationId: pedido.correlationId,
+      usuarioId: pedido.usuarioId,
     };
-    await this.rabbitmq.publish('order.ready', event as unknown as Record<string, unknown>);
+    await this.rabbitmq.publish(
+      'order.ready',
+      event as unknown as Record<string, unknown>,
+    );
 
     this.updates$.next({ pedidoId: id, estado: EstadoPedido.LISTO, numeroPedido: pedido.numeroPedido });
     this.logger.log(`Pedido ${id} marked LISTO`);

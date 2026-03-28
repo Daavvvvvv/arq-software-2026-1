@@ -10,8 +10,13 @@ import {
   Repartidor,
 } from '@concert/domain';
 import { RabbitMQService } from '@concert/messaging';
-import { ordersDeliveredTotal, orderDeliveryDurationSeconds, ordersInFlight } from '@concert/telemetry';
+import {
+  ordersDeliveredTotal,
+  orderDeliveryDurationSeconds,
+  ordersInFlight,
+} from '@concert/telemetry';
 import { OrderDeliveredEvent } from '@concert/events';
+import { randomUUID } from 'crypto';
 
 // Adjacent zones mapping for fallback
 const ZONAS_ADYACENTES: Record<string, string[]> = {
@@ -21,6 +26,14 @@ const ZONAS_ADYACENTES: Record<string, string[]> = {
   D: ['C', 'E'],
   E: ['D'],
 };
+
+const AUTO_DELIVERY_DELAY_MS = 15000;
+
+function normalizeOptionalUuid(value?: string | null): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
 
 @Injectable()
 export class DeliveryService {
@@ -37,54 +50,123 @@ export class DeliveryService {
     tenantId: string,
   ): Promise<void> {
     const pedidoRepo = this.ds.getRepository(Pedido);
-    const pedido = await pedidoRepo.findOne({ where: { id: pedidoId } });
+    const entregaRepo = this.ds.getRepository(Entrega);
+    const repartidorRepo = this.ds.getRepository(Repartidor);
+    const eventsLogRepo = this.ds.getRepository(EventsLog);
+
+    const safeCorrelationId = normalizeOptionalUuid(correlationId) ?? randomUUID();
+    const safeTenantId = normalizeOptionalUuid(tenantId);
+
+    const pedido = await pedidoRepo.findOne({
+      where: { id: pedidoId },
+      relations: ['entrega'],
+    });
+
     if (!pedido) {
       this.logger.error(`Pedido ${pedidoId} not found`);
       return;
     }
 
-    const repartidorRepo = this.ds.getRepository(Repartidor);
+    if (
+      pedido.estado === EstadoPedido.EN_ENTREGA ||
+      pedido.estado === EstadoPedido.ENTREGADO
+    ) {
+      this.logger.warn(
+        `Pedido ${pedidoId} already processed by delivery with estado ${pedido.estado}`,
+      );
+      return;
+    }
 
-    // Find available repartidor in same zone first, then adjacent
     let repartidor = await repartidorRepo.findOne({
       where: { zona: pedido.zona, disponible: true },
     });
 
     if (!repartidor) {
       const adyacentes = ZONAS_ADYACENTES[pedido.zona] ?? [];
+
       for (const zona of adyacentes) {
-        repartidor = await repartidorRepo.findOne({ where: { zona, disponible: true } });
+        repartidor = await repartidorRepo.findOne({
+          where: { zona, disponible: true },
+        });
+
         if (repartidor) break;
       }
     }
 
     if (!repartidor) {
-      this.logger.warn(`No repartidor available for zona ${pedido.zona} — operational alert`);
+      this.logger.warn(
+        `No repartidor available for zona ${pedido.zona} — operational alert`,
+      );
       return;
     }
 
-    // Assign repartidor
     await repartidorRepo.update(repartidor.id, { disponible: false });
 
-    await this.ds.getRepository(Entrega).save(
-      this.ds.getRepository(Entrega).create({
+    const entrega =
+      pedido.entrega ??
+      entregaRepo.create({
         pedidoId,
         repartidorId: repartidor.id,
         estado: EstadoEntrega.ASIGNADO,
-      }),
-    );
+      });
+
+    entrega.repartidorId = repartidor.id;
+    entrega.estado = EstadoEntrega.ASIGNADO;
+
+    await entregaRepo.save(entrega);
 
     await pedidoRepo.update(pedidoId, { estado: EstadoPedido.EN_ENTREGA });
 
-    await this.ds.getRepository(EventsLog).save({
+    await eventsLogRepo.save({
       eventType: 'order.in_delivery',
       pedidoId,
-      correlationId,
-      tenantId,
-      payload: { repartidorId: repartidor.id, zona: pedido.zona },
+      correlationId: safeCorrelationId,
+      tenantId: safeTenantId,
+      payload: {
+        repartidorId: repartidor.id,
+        repartidorNombre: repartidor.nombre,
+        zona: pedido.zona,
+      },
     });
 
-    this.logger.log(`Pedido ${pedidoId} assigned to repartidor ${repartidor.nombre}`);
+    this.logger.log(
+      `Pedido ${pedidoId} assigned to repartidor ${repartidor.nombre}`,
+    );
+
+    setTimeout(() => {
+      void this.autoConfirmDelivery(pedidoId);
+    }, AUTO_DELIVERY_DELAY_MS);
+  }
+
+  private async autoConfirmDelivery(pedidoId: string): Promise<void> {
+    try {
+      const pedido = await this.ds.getRepository(Pedido).findOne({
+        where: { id: pedidoId },
+        relations: ['entrega'],
+      });
+
+      if (!pedido) {
+        this.logger.warn(
+          `Auto-delivery skipped: pedido ${pedidoId} no longer exists`,
+        );
+        return;
+      }
+
+      if (pedido.estado !== EstadoPedido.EN_ENTREGA) {
+        this.logger.warn(
+          `Auto-delivery skipped: pedido ${pedidoId} is in estado ${pedido.estado}`,
+        );
+        return;
+      }
+
+      this.logger.log(`Auto-delivering pedido ${pedidoId}`);
+      await this.confirmarEntrega(pedidoId);
+    } catch (error) {
+      this.logger.error(
+        `Auto-delivery failed for pedido ${pedidoId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   async getPedidosEnEntrega(): Promise<Pedido[]> {
@@ -100,7 +182,11 @@ export class DeliveryService {
       where: { id: pedidoId },
       relations: ['entrega', 'entrega.repartidor', 'items', 'items.producto'],
     });
-    if (!pedido) throw new NotFoundException('Pedido no encontrado');
+
+    if (!pedido) {
+      throw new NotFoundException('Pedido no encontrado');
+    }
+
     return pedido;
   }
 
@@ -115,19 +201,34 @@ export class DeliveryService {
 
   async confirmarEntrega(pedidoId: string): Promise<void> {
     const pedidoRepo = this.ds.getRepository(Pedido);
+    const entregaRepo = this.ds.getRepository(Entrega);
+    const repartidorRepo = this.ds.getRepository(Repartidor);
+    const eventsLogRepo = this.ds.getRepository(EventsLog);
+
     const pedido = await pedidoRepo.findOne({
       where: { id: pedidoId },
       relations: ['entrega', 'entrega.repartidor'],
     });
-    if (!pedido) throw new NotFoundException('Pedido no encontrado');
-    if (!pedido.entrega) throw new NotFoundException('Entrega no encontrada');
+
+    if (!pedido) {
+      throw new NotFoundException('Pedido no encontrado');
+    }
+
+    if (!pedido.entrega) {
+      throw new NotFoundException('Entrega no encontrada');
+    }
+
+    if (pedido.estado === EstadoPedido.ENTREGADO) {
+      this.logger.warn(`Pedido ${pedidoId} already delivered`);
+      return;
+    }
 
     const horaEntrega = new Date();
     const tiempoTotal = Math.round(
       (horaEntrega.getTime() - pedido.createdAt.getTime()) / 1000,
     );
 
-    await this.ds.getRepository(Entrega).update(pedido.entrega.id, {
+    await entregaRepo.update(pedido.entrega.id, {
       estado: EstadoEntrega.ENTREGADO,
       horaEntrega,
       tiempoTotal,
@@ -136,31 +237,45 @@ export class DeliveryService {
     await pedidoRepo.update(pedidoId, { estado: EstadoPedido.ENTREGADO });
 
     if (pedido.entrega.repartidorId) {
-      await this.ds.getRepository(Repartidor).update(pedido.entrega.repartidorId, {
+      await repartidorRepo.update(pedido.entrega.repartidorId, {
         disponible: true,
       });
     }
 
-    await this.ds.getRepository(EventsLog).save({
+    const safeCorrelationId =
+      normalizeOptionalUuid(pedido.correlationId) ?? randomUUID();
+
+    // IMPORTANTE:
+    // el evento exige tenantId: string
+    // así que aquí no puede quedar undefined
+    const safeTenantId =
+      normalizeOptionalUuid(pedido.tenantId) ?? randomUUID();
+
+    await eventsLogRepo.save({
       eventType: 'order.delivered',
       pedidoId,
-      correlationId: pedido.correlationId,
-      tenantId: pedido.tenantId,
+      correlationId: safeCorrelationId,
+      tenantId: safeTenantId,
       payload: { tiempoTotal },
     });
 
     const event: OrderDeliveredEvent = {
       eventType: 'order.delivered',
       pedidoId,
-      tenantId: pedido.tenantId ?? '',
-      correlationId: pedido.correlationId ?? '',
+      tenantId: safeTenantId,
+      correlationId: safeCorrelationId,
       tiempoTotal,
     };
-    await this.rabbitmq.publish('order.delivered', event as unknown as Record<string, unknown>);
+
+    await this.rabbitmq.publish(
+      'order.delivered',
+      event as unknown as Record<string, unknown>,
+    );
 
     ordersDeliveredTotal.inc();
     orderDeliveryDurationSeconds.observe(tiempoTotal);
     ordersInFlight.dec();
+
     this.logger.log(`Pedido ${pedidoId} ENTREGADO in ${tiempoTotal}s`);
   }
 }

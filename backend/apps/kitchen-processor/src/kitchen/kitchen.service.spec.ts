@@ -11,6 +11,7 @@ const mockRepo = {
     estado: EstadoPedido.PAGADO,
     correlationId: 'corr-1',
     tenantId: 'tenant-1',
+    usuarioId: '11111111-1111-1111-1111-111111111111',
   }),
   update: jest.fn().mockResolvedValue({}),
   find: jest.fn().mockResolvedValue([]),

@@ -2,17 +2,17 @@
   min-height: 100vh;
   background: linear-gradient(180deg, #050816 0%, #08112c 100%);
   color: #f8fafc;
-  padding: 24px 16px 40px;
+  padding: 24px 16px 32px;
 }
 
 .order-status-page__container {
   width: 100%;
-  max-width: 520px;
+  max-width: 420px;
   margin: 0 auto;
 }
 
 .order-status-header {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .order-status-header__top {
@@ -22,9 +22,10 @@
 }
 
 .order-status-header__meta {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: #94a3b8;
   font-weight: 600;
+  text-align: center;
 }
 
 .order-status-card {
@@ -36,18 +37,18 @@
 }
 
 .order-status-card--empty {
-  padding: 32px 24px;
+  padding: 30px 22px;
 }
 
 .order-status-empty__title {
   margin: 0 0 8px;
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 800;
   text-align: center;
 }
 
 .order-status-empty__text {
-  margin: 0 0 20px;
+  margin: 0 0 18px;
   color: #94a3b8;
   line-height: 1.5;
   text-align: center;
@@ -57,15 +58,16 @@
   width: 100%;
   border: none;
   border-radius: 16px;
-  padding: 14px 18px;
-  background: linear-gradient(90deg, #7c5cff 0%, #3b82f6 100%);
+  padding: 15px 18px;
+  background: linear-gradient(90deg, #7c5cff 0%, #14b8d4 100%);
   color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.96rem;
+  font-weight: 800;
+  box-shadow: 0 12px 30px rgba(124, 92, 255, 0.22);
 }
 
 .order-status-alert {
-  margin: 16px 16px 0;
+  margin: 14px 14px 0;
   padding: 12px 14px;
   border-radius: 14px;
   background: rgba(120, 53, 15, 0.22);
@@ -76,25 +78,29 @@
 }
 
 .order-status-hero {
-  padding: 28px 24px 22px;
+  padding: 26px 22px 20px;
   text-align: center;
-  background: linear-gradient(
-    180deg,
-    rgba(6, 182, 212, 0.06) 0%,
-    rgba(124, 92, 255, 0.04) 100%
-  );
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background:
+    radial-gradient(circle at top, rgba(124, 92, 255, 0.16) 0%, transparent 48%),
+    linear-gradient(
+      180deg,
+      rgba(6, 182, 212, 0.06) 0%,
+      rgba(124, 92, 255, 0.04) 100%
+    );
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 .order-status-hero__icon {
-  width: 76px;
-  height: 76px;
-  margin: 0 auto 18px;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  font-size: 1.9rem;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  font-size: 1.7rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 10px 28px rgba(0, 0, 0, 0.18);
 }
 
 .order-status-hero__icon--active {
@@ -114,28 +120,32 @@
 
 .order-status-hero__title {
   margin: 0 0 8px;
-  font-size: 1.9rem;
-  line-height: 1.1;
+  font-size: 1.75rem;
+  line-height: 1.08;
   font-weight: 800;
   color: #f8fafc;
 }
 
 .order-status-hero__subtitle {
   margin: 0;
-  color: #94a3b8;
-  font-size: 1rem;
-  line-height: 1.5;
+  color: #cbd5e1;
+  font-size: 0.96rem;
+  line-height: 1.45;
 }
 
 .order-status-timeline {
-  padding: 22px 24px 10px;
+  padding: 18px 18px 8px;
 }
 
 .order-status-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding-bottom: 22px;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.order-status-step--last {
+  padding-bottom: 0;
 }
 
 .order-status-step__rail {
@@ -147,20 +157,20 @@
 
 .order-status-step__line {
   width: 2px;
-  min-height: 54px;
+  min-height: 42px;
   margin-top: 6px;
   border-radius: 999px;
   background: rgba(148, 163, 184, 0.18);
 }
 
 .order-status-step__line--completed {
-  background: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.45);
 }
 
 .order-status-step__line--active {
   background: linear-gradient(
     180deg,
-    rgba(245, 158, 11, 0.85) 0%,
+    rgba(245, 158, 11, 0.9) 0%,
     rgba(148, 163, 184, 0.2) 100%
   );
 }
@@ -175,7 +185,7 @@
   border-radius: 999px;
   display: grid;
   place-items: center;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   flex-shrink: 0;
   z-index: 1;
@@ -189,8 +199,9 @@
 
 .order-status-step__icon--active {
   background: rgba(245, 158, 11, 0.18);
-  border: 1px solid rgba(245, 158, 11, 0.28);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   color: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.08);
 }
 
 .order-status-step__icon--pending {
@@ -200,14 +211,18 @@
 }
 
 .order-status-step__content {
-  padding-top: 3px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(12, 20, 44, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.08);
 }
 
 .order-status-step__title {
   margin: 0 0 4px;
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 700;
-  color: #cbd5e1;
+  color: #94a3b8;
 }
 
 .order-status-step__title--active {
@@ -215,18 +230,28 @@
 }
 
 .order-status-step__title--completed {
-  color: #e2e8f0;
+  color: #f8fafc;
 }
 
 .order-status-step__meta {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #64748b;
-  line-height: 1.45;
+  line-height: 1.4;
+}
+
+.order-status-step:has(.order-status-step__icon--active) .order-status-step__content {
+  background: rgba(38, 24, 8, 0.34);
+  border: 1px solid rgba(245, 158, 11, 0.18);
+}
+
+.order-status-step:has(.order-status-step__icon--completed) .order-status-step__content {
+  background: rgba(10, 26, 21, 0.28);
+  border: 1px solid rgba(74, 222, 128, 0.12);
 }
 
 .order-status-error-box {
-  margin: 0 24px 12px;
+  margin: 4px 20px 12px;
   padding: 14px 16px;
   border-radius: 16px;
   background: rgba(127, 29, 29, 0.22);
@@ -241,37 +266,47 @@
 }
 
 .order-status-back-button {
-  width: calc(100% - 48px);
-  margin: 16px 24px 24px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  width: calc(100% - 40px);
+  margin: 16px 20px 20px;
+  border: none;
   border-radius: 18px;
   padding: 16px 18px;
-  background: rgba(30, 41, 59, 0.5);
-  color: #86efac;
+  background: linear-gradient(90deg, #7c5cff 0%, #14b8d4 100%);
+  color: #ffffff;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   text-align: center;
+  box-shadow: 0 12px 30px rgba(124, 92, 255, 0.22);
 }
 
 .order-status-back-button:hover {
-  background: rgba(51, 65, 85, 0.72);
+  filter: brightness(1.05);
 }
 
 @media (max-width: 480px) {
   .order-status-page {
-    padding: 18px 12px 32px;
+    padding: 18px 12px 28px;
   }
 
   .order-status-hero {
-    padding: 24px 18px 20px;
+    padding: 24px 18px 18px;
   }
 
   .order-status-hero__title {
-    font-size: 1.65rem;
+    font-size: 1.58rem;
   }
 
   .order-status-timeline {
-    padding: 20px 18px 8px;
+    padding: 16px 16px 8px;
+  }
+
+  .order-status-step {
+    grid-template-columns: 32px 1fr;
+    gap: 10px;
+  }
+
+  .order-status-step__content {
+    padding: 11px 12px;
   }
 
   .order-status-back-button {
@@ -280,6 +315,6 @@
   }
 
   .order-status-error-box {
-    margin: 0 18px 12px;
+    margin: 4px 18px 12px;
   }
 }

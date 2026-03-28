@@ -73,7 +73,13 @@ function getHistoryEntryForStatus(
 }
 
 function formatHistoryTime(changedAt: string) {
-  return new Date(changedAt).toLocaleTimeString('es-CO', {
+  const date = new Date(changedAt)
+
+  const local = new Date(
+    date.getTime() - date.getTimezoneOffset() * 60000
+  )
+
+  return local.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -213,6 +219,7 @@ function OrderStatusPage() {
   const isFinalErrorState =
     order.status === 'payment_failed' || order.status === 'cancelled'
 
+  const createdEntry = getHistoryEntryForStatus(order.history, 'created')
   const confirmedEntry = getHistoryEntryForStatus(order.history, 'confirmed')
   const readyEntry = getHistoryEntryForStatus(order.history, 'ready')
   const deliveredEntry = getHistoryEntryForStatus(order.history, 'delivered')
@@ -258,16 +265,16 @@ function OrderStatusPage() {
               {[
                 {
                   key: 'received',
-                  title: 'Pedido confirmado',
-                  icon: '✓',
-                  entry: confirmedEntry,
-                  fallback: 'Pendiente',
+                  title: 'Pedido recibido',
+                  icon: '🧾',
+                  entry: createdEntry,
+                  fallback: 'Recibido por el sistema',
                 },
                 {
                   key: 'preparing',
                   title: 'En preparación',
                   icon: '🍳',
-                  entry: readyEntry,
+                  entry: confirmedEntry,
                   fallback:
                     order.status === 'confirmed'
                       ? 'Cocina Sector C'
@@ -277,8 +284,11 @@ function OrderStatusPage() {
                   key: 'delivery',
                   title: 'En camino a tu asiento',
                   icon: '🛵',
-                  entry: deliveredEntry,
-                  fallback: 'Pendiente',
+                  entry: readyEntry,
+                  fallback:
+                    order.status === 'ready'
+                      ? 'Repartidor asignado'
+                      : 'Pendiente',
                 },
                 {
                   key: 'delivered',
