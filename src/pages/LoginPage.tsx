@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { loginRequest, saveToken, saveUser } from '../services/sessionService';
 import './LoginPage.css';
 
@@ -93,6 +93,10 @@ export default function LoginPage() {
             {isLoading ? 'Ingresando...' : 'Entrar'}
           </button>
         </form>
+
+        <p className="login-register-prompt">
+          ¿No tienes cuenta? <Link to="/register" className="login-register-link">Regístrate aquí</Link>
+        </p>
       </section>
     </main>
   );
