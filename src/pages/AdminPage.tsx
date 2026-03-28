@@ -27,11 +27,11 @@ interface Evento {
 }
 
 interface MetricasData {
-  kr1_adoption: number
-  kr2_avg_delivery_time: number
-  kr3_failed_percentage: number
-  orders_per_hour: Array<{ hour: number; count: number }>
-  top_products: Array<{ nombre: string; count: number }>
+  kr1_adopcion_pct: number
+  kr2_tiempo_promedio_seg: number
+  kr3_fallidos_pct: number
+  pedidos_por_hora: Array<{ hora: string; total: number }>
+  top_productos: Array<{ nombre: string; count: number }>
 }
 
 export default function AdminPage() {
@@ -538,43 +538,43 @@ export default function AdminPage() {
               <>
                 <div className="metrics-cards">
                   <div className="metric-card">
-                    <h4>KR1: Adopción</h4>
-                    <div className="metric-value">{metricas.kr1_adoption.toFixed(1)}%</div>
-                    <p className="metric-label">de asistentes usando la plataforma</p>
+                    <h4>KR1: Adopcion</h4>
+                    <div className="metric-value">{metricas.kr1_adopcion_pct.toFixed(1)}%</div>
+                    <p className="metric-label">de pedidos entregados (target: ≥25%)</p>
                   </div>
                   <div className="metric-card">
                     <h4>KR2: Tiempo Promedio</h4>
-                    <div className="metric-value">{metricas.kr2_avg_delivery_time.toFixed(1)}min</div>
-                    <p className="metric-label">desde el pedido hasta la entrega</p>
+                    <div className="metric-value">{(metricas.kr2_tiempo_promedio_seg / 60).toFixed(1)} min</div>
+                    <p className="metric-label">desde pedido hasta entrega (target: &lt;10 min)</p>
                   </div>
                   <div className="metric-card">
                     <h4>KR3: Tasa de Fallo</h4>
-                    <div className="metric-value">{metricas.kr3_failed_percentage.toFixed(2)}%</div>
-                    <p className="metric-label">de pedidos fallidos</p>
+                    <div className="metric-value">{metricas.kr3_fallidos_pct.toFixed(2)}%</div>
+                    <p className="metric-label">de pedidos fallidos (target: &lt;1%)</p>
                   </div>
                 </div>
 
                 <div className="charts-section">
                   <h3>Pedidos por Hora</h3>
                   <div className="bar-chart">
-                    {metricas.orders_per_hour.map((item) => (
-                      <div key={item.hour} className="bar-item">
+                    {metricas.pedidos_por_hora.map((item, idx) => (
+                      <div key={idx} className="bar-item">
                         <div
                           className="bar"
                           style={{
-                            height: `${Math.min((item.count / 100) * 100, 100)}%`,
+                            height: `${Math.min((item.total / 20) * 100, 100)}%`,
                           }}
                         />
-                        <span className="bar-label">{item.hour}:00</span>
+                        <span className="bar-label">{new Date(item.hora).getHours()}:00</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="top-products-section">
-                  <h3>Productos Más Vendidos</h3>
+                  <h3>Productos Mas Vendidos</h3>
                   <div className="top-products-list">
-                    {metricas.top_products.map((product, idx) => (
+                    {metricas.top_productos.map((product, idx) => (
                       <div key={idx} className="top-product-item">
                         <span className="rank">#{idx + 1}</span>
                         <span className="product-name">{product.nombre}</span>
