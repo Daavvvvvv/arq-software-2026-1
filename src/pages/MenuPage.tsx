@@ -172,7 +172,9 @@ function MenuPage() {
             <section className="card menu-hero">
               <div className="menu-hero__top">
                 <span className="menu-hero__live-badge">En vivo ahora</span>
-                <span className="menu-hero__seat-chip">{ticket.seat}</span>
+                <span className="menu-hero__seat-chip">
+                   Zona {ticket.zona} • Fila {ticket.fila} • Asiento {ticket.asiento}
+                </span>
               </div>
 
               <h2 className="menu-hero__title">{ticket.eventName}</h2>

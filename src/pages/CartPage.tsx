@@ -6,7 +6,9 @@ import {
   validateCartAgainstMenu,
   type CartValidationResult,
 } from '../services/cartService'
+import { getMenu } from '../services/menuService'
 import { createOrder } from '../services/orderService'
+import { getLatestOrderIdWithRetry } from '../services/orderTrackingService'
 import { getTicket, getUser } from '../services/sessionService'
 import './CartPage.css'
 
@@ -19,34 +21,48 @@ function CartPage() {
     hasBlockingIssues: false,
   })
   const [checkoutError, setCheckoutError] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
 
   const refreshCart = () => {
     const validationResult = validateCartAgainstMenu()
     setCartState(validationResult)
   }
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     setCheckoutError('')
 
-    const result = createOrder()
+    try {
+      const result = await createOrder()
 
-    if (!result.success) {
-      setCheckoutError(result.message ?? 'No se pudo crear el pedido.')
-      refreshCart()
-      return
+      if (!result.success) {
+        setCheckoutError(result.message ?? 'No se pudo crear el pedido.')
+        refreshCart()
+        return
+      }
+
+      await getLatestOrderIdWithRetry()
+
+      navigate('/order-status')
+    } catch (error) {
+      console.error(error)
+      setCheckoutError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo crear o localizar el pedido.'
+      )
     }
-
-    navigate('/order-status')
   }
 
-  const handleIncrease = (productId: string) => {
+  const handleIncrease = async (productId: string) => {
     increaseCartItemQuantity(productId)
-    refreshCart()
+    await getMenu()
+    await refreshCart()
   }
 
-  const handleDecrease = (productId: string) => {
+  const handleDecrease = async (productId: string) => {
     decreaseCartItemQuantity(productId)
-    refreshCart()
+    await getMenu()
+    await refreshCart()
   }
 
   const getProductIcon = (productName: string) => {
@@ -63,27 +79,58 @@ function CartPage() {
   }
 
   useEffect(() => {
-    const storedUser = getUser()
+    const initializeCart = async () => {
+      const storedUser = getUser()
 
-    if (!storedUser) {
-      navigate('/')
-      return
+      if (!storedUser) {
+        navigate('/')
+        return
+      }
+
+      const storedTicket = getTicket()
+
+      if (!storedTicket) {
+        navigate('/link-ticket')
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        await getMenu()
+        refreshCart()
+      } catch (error) {
+        console.error(error)
+        setCheckoutError('No se pudo cargar el menú actual del recinto.')
+        refreshCart()
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    const storedTicket = getTicket()
-
-    if (!storedTicket) {
-      navigate('/link-ticket')
-      return
-    }
-
-    refreshCart()
+    void initializeCart()
   }, [navigate])
 
   const subtotal = cartState.total
   const seatDeliveryFee = 0
   const serviceFee = cartState.items.length > 0 ? 1250 : 0
   const finalTotal = subtotal + seatDeliveryFee + serviceFee
+
+  if (isLoading) {
+    return (
+      <div className="cart-page">
+        <div className="cart-page__container">
+          <section className="cart-card">
+            <div className="cart-loading">
+              <h2 className="cart-loading__title">Cargando tu pedido</h2>
+              <p className="cart-loading__text">
+                Estamos validando los productos con el menú actual.
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="cart-page">
@@ -187,7 +234,7 @@ function CartPage() {
                         <button
                           type="button"
                           className="cart-item__quantity-button cart-item__quantity-button--decrease"
-                          onClick={() => handleDecrease(item.product.id)}
+                          onClick={() => void handleDecrease(item.product.id)}
                           aria-label={`Disminuir cantidad de ${item.product.name}`}
                         >
                           −
@@ -200,7 +247,7 @@ function CartPage() {
                         <button
                           type="button"
                           className="cart-item__quantity-button cart-item__quantity-button--increase"
-                          onClick={() => handleIncrease(item.product.id)}
+                          onClick={() => void handleIncrease(item.product.id)}
                           aria-label={`Aumentar cantidad de ${item.product.name}`}
                           disabled={!item.isAvailable}
                         >
@@ -243,7 +290,7 @@ function CartPage() {
               <button
                 type="button"
                 className="cart-checkout-button"
-                onClick={handleCheckout}
+                onClick={() => void handleCheckout()}
                 disabled={cartState.hasBlockingIssues}
               >
                 {cartState.hasBlockingIssues
