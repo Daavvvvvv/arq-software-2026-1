@@ -318,3 +318,77 @@
     margin: 4px 18px 12px;
   }
 }
+
+/* ── Order List ─────────────────────────────────── */
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.order-list__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  color: #f8fafc;
+  transition: border-color 0.2s;
+}
+
+.order-list__item:hover {
+  border-color: #374151;
+}
+
+.order-list__item--active {
+  border-color: #6366f1;
+  background: #0f172a;
+}
+
+.order-list__number {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.order-list__meta {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.order-list__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.order-status-header__title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.order-items-summary {
+  padding: 12px 20px;
+  border-top: 1px solid #1f2937;
+  border-bottom: 1px solid #1f2937;
+  margin: 0 0 12px;
+}
+
+.order-items-summary__item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
