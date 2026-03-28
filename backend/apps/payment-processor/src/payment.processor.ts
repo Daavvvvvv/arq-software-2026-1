@@ -14,7 +14,7 @@ import { PaymentService } from './payment.service';
 @Injectable()
 export class PaymentProcessor {
   private readonly logger = new Logger(PaymentProcessor.name);
-  private readonly redis: Redis;
+  private readonly redis: Redis | null;
 
   constructor(
     @Inject(WRITE_DATA_SOURCE) private readonly ds: DataSource,
@@ -22,10 +22,16 @@ export class PaymentProcessor {
     private readonly paymentService: PaymentService,
     private readonly config: ConfigService,
   ) {
-    this.redis = new Redis({
-      host: config.get<string>('REDIS_HOST') ?? 'localhost',
-      port: parseInt(config.get<string>('REDIS_PORT') ?? '6379', 10),
-    });
+    const redisHost = config.get<string>('REDIS_HOST');
+    if (redisHost) {
+      this.redis = new Redis({
+        host: redisHost,
+        port: parseInt(config.get<string>('REDIS_PORT') ?? '6379', 10),
+      });
+    } else {
+      this.redis = null;
+      this.logger.warn('Redis not configured — idempotency checks disabled');
+    }
   }
 
   @RabbitSubscribe({
@@ -40,10 +46,12 @@ export class PaymentProcessor {
 
     // Idempotency check
     const idemKey = `idem:${pedidoId}`;
-    const cached = await this.redis.get(idemKey);
-    if (cached) {
-      this.logger.log(`[IDEM] Skipping already processed pedido ${pedidoId}`);
-      return;
+    if (this.redis) {
+      const cached = await this.redis.get(idemKey);
+      if (cached) {
+        this.logger.log(`[IDEM] Skipping already processed pedido ${pedidoId}`);
+        return;
+      }
     }
 
     const pedidoRepo = this.ds.getRepository(Pedido);
@@ -91,7 +99,9 @@ export class PaymentProcessor {
       };
       await this.rabbitmq.publish('payment.confirmed', confirmEvent as unknown as Record<string, unknown>);
 
-      await this.redis.set(idemKey, JSON.stringify(result), 'EX', 86400);
+      if (this.redis) {
+        await this.redis.set(idemKey, JSON.stringify(result), 'EX', 86400);
+      }
       this.logger.log(`Payment confirmed for pedido ${pedidoId}`);
     } else {
       const failEvent: PaymentFailedEvent = {
