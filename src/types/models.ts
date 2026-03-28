@@ -1,8 +1,11 @@
 // Usuario
+export type UserRole = 'CONSUMER' | 'KITCHEN'
+
 export interface User {
   id: string
   name: string
   email: string
+  rol: UserRole
 }
 
 // Boleta vinculada
