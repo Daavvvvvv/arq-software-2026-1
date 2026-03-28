@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import KitchenEmptyState from '../components/kitchen/KitchenEmptyState'
-import KitchenOrderCard from '../components/kitchen/KitchenOrderCard'
+import KitchenEmptyState from '../components/Kitchen/KitchenEmptyState'
+import KitchenOrderCard from '../components/Kitchen/KitchenOrderCard'
 import {
   cancelKitchenOrder,
   getKitchenOrders,

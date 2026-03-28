@@ -1,6 +1,5 @@
-import type { CartItem, Order, OrderStatus, OrderStatusHistoryItem } from '../types/models'
+import type { Order, OrderStatus, OrderStatusHistoryItem } from '../types/models'
 import { getCart, clearCart } from './cartService'
-import { getMenu, getProductById } from './menuService'
 import { getAuthHeaders } from './sessionService'
 import { getTicket } from './sessionService'
 
@@ -42,10 +41,6 @@ function getOrderStatusByElapsedTime(
   }
 
   return 'delivered'
-}
-
-function shouldSimulatePaymentFailure(): boolean {
-  return Math.random() < 0.2
 }
 
 function buildOrderHistory(
@@ -99,45 +94,6 @@ function buildOrderHistory(
   }
 
   return history
-}
-
-function validateCartItems(cart: CartItem[]): {
-  valid: boolean
-  items?: CartItem[]
-  error?: CreateOrderError
-  message?: string
-} {
-  const validatedItems: CartItem[] = []
-
-  for (const item of cart) {
-    const currentProduct = getProductById(item.product.id)
-
-    if (!currentProduct || !currentProduct.available) {
-      return {
-        valid: false,
-        error: 'product_unavailable',
-        message: `El producto ${item.product.name} ya no está disponible.`,
-      }
-    }
-
-    if (currentProduct.price !== item.product.price) {
-      return {
-        valid: false,
-        error: 'price_changed',
-        message: `El precio de ${item.product.name} cambió. Revisa tu carrito antes de continuar.`,
-      }
-    }
-
-    validatedItems.push({
-      product: currentProduct,
-      quantity: item.quantity,
-    })
-  }
-
-  return {
-    valid: true,
-    items: validatedItems,
-  }
 }
 
 export async function createOrder(): Promise<CreateOrderResult> {

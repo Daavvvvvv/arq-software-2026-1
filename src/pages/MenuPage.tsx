@@ -27,7 +27,7 @@ function MenuPage() {
   const [loading, setLoading] = useState(true)
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState('')
-  const [feedbackType, setFeedbackType] = useState<'success' | 'error'>(
+  const [, setFeedbackType] = useState<'success' | 'error'>(
     'success'
   )
   const [cartItemsCount, setCartItemsCount] = useState(0)
