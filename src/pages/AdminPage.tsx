@@ -269,326 +269,419 @@ export default function AdminPage() {
     navigate('/')
   }
 
+  const getKRColor = (kr: number, target: number, isLessThan = false) => {
+    if (isLessThan) {
+      return kr <= target ? '#22c55e' : '#ef4444'
+    }
+    return kr >= target ? '#22c55e' : '#ef4444'
+  }
+
   return (
-    <div className="admin-container">
-      <div className="admin-header">
-        <h1>Panel de Administración</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
+    <div className="admin-page">
+      <div className="admin-page__container">
+        {/* Header */}
+        <div className="admin-header">
+          <div>
+            <div className="admin-header__eyebrow">Sistema PIKEA</div>
+            <h1 className="admin-header__title">Panel de Administración</h1>
+          </div>
+          <button className="admin-header__logout" onClick={handleLogout}>
+            Cerrar Sesión
+          </button>
+        </div>
 
-      {error && <div className="admin-error">{error}</div>}
+        {/* Error Alert */}
+        {error && <div className="admin-error">{error}</div>}
 
-      <div className="admin-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'productos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('productos')}
-        >
-          Productos
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'eventos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('eventos')}
-        >
-          Eventos
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'metricas' ? 'active' : ''}`}
-          onClick={() => setActiveTab('metricas')}
-        >
-          Métricas
-        </button>
-      </div>
+        {/* Tabs */}
+        <div className="admin-tabs">
+          <button
+            className={`admin-tab ${activeTab === 'productos' ? 'admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('productos')}
+          >
+            Productos
+          </button>
+          <button
+            className={`admin-tab ${activeTab === 'eventos' ? 'admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('eventos')}
+          >
+            Eventos
+          </button>
+          <button
+            className={`admin-tab ${activeTab === 'metricas' ? 'admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('metricas')}
+          >
+            Métricas
+          </button>
+        </div>
 
-      <div className="admin-content">
-        {/* Productos Tab */}
-        {activeTab === 'productos' && (
-          <div className="tab-pane">
-            <h2>Gestión de Productos</h2>
+        {/* Content */}
+        <div className="admin-content">
+          {/* Productos Tab */}
+          {activeTab === 'productos' && (
+            <div className="admin-section">
+              <h2 className="admin-section__title">Gestión de Productos</h2>
 
-            <div className="tienda-selector">
-              <label>Selecciona una tienda:</label>
-              <select
-                value={selectedTienda || ''}
-                onChange={(e) => setSelectedTienda(e.target.value || null)}
-              >
-                <option value="">-- Seleccionar --</option>
-                {tiendas.map((tienda) => (
-                  <option key={tienda.id} value={tienda.id}>
-                    {tienda.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {/* Tienda Selector */}
+              <div className="admin-card admin-card--input-card">
+                <label className="admin-label">Selecciona una tienda:</label>
+                <select
+                  className="admin-select"
+                  value={selectedTienda || ''}
+                  onChange={(e) => setSelectedTienda(e.target.value || null)}
+                >
+                  <option value="">-- Seleccionar --</option>
+                  {tiendas.map((tienda) => (
+                    <option key={tienda.id} value={tienda.id}>
+                      {tienda.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {selectedTienda && (
-              <>
-                <div className="form-section">
-                  <h3>Agregar Nuevo Producto</h3>
-                  <div className="form-grid">
-                    <input
-                      type="text"
-                      placeholder="Nombre"
-                      value={newProductForm.nombre}
-                      onChange={(e) =>
-                        setNewProductForm({ ...newProductForm, nombre: e.target.value })
-                      }
-                    />
-                    <input
-                      type="number"
-                      placeholder="Precio"
-                      value={newProductForm.precio}
-                      onChange={(e) =>
-                        setNewProductForm({ ...newProductForm, precio: e.target.value })
-                      }
-                    />
-                    <input
-                      type="number"
-                      placeholder="Stock"
-                      value={newProductForm.stock}
-                      onChange={(e) =>
-                        setNewProductForm({ ...newProductForm, stock: e.target.value })
-                      }
-                    />
-                    <label className="checkbox-label">
+              {selectedTienda && (
+                <>
+                  {/* Add Product Form */}
+                  <div className="admin-card">
+                    <h3 className="admin-card__title">Agregar Nuevo Producto</h3>
+                    <div className="admin-form-grid">
                       <input
-                        type="checkbox"
-                        checked={newProductForm.disponible}
+                        className="admin-input"
+                        type="text"
+                        placeholder="Nombre del producto"
+                        value={newProductForm.nombre}
                         onChange={(e) =>
-                          setNewProductForm({ ...newProductForm, disponible: e.target.checked })
+                          setNewProductForm({ ...newProductForm, nombre: e.target.value })
                         }
                       />
-                      Disponible
-                    </label>
+                      <input
+                        className="admin-input"
+                        type="number"
+                        placeholder="Precio"
+                        value={newProductForm.precio}
+                        onChange={(e) =>
+                          setNewProductForm({ ...newProductForm, precio: e.target.value })
+                        }
+                      />
+                      <input
+                        className="admin-input"
+                        type="number"
+                        placeholder="Stock"
+                        value={newProductForm.stock}
+                        onChange={(e) =>
+                          setNewProductForm({ ...newProductForm, stock: e.target.value })
+                        }
+                      />
+                      <label className="admin-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={newProductForm.disponible}
+                          onChange={(e) =>
+                            setNewProductForm({ ...newProductForm, disponible: e.target.checked })
+                          }
+                        />
+                        <span>Disponible</span>
+                      </label>
+                    </div>
+                    <button
+                      className="admin-button admin-button--primary"
+                      onClick={createProducto}
+                      disabled={loading}
+                    >
+                      {loading ? 'Agregando...' : 'Agregar Producto'}
+                    </button>
                   </div>
-                  <button className="action-btn create-btn" onClick={createProducto} disabled={loading}>
-                    {loading ? 'Adding...' : 'Agregar Producto'}
-                  </button>
-                </div>
 
-                <div className="productos-list">
-                  <h3>Productos ({productos.length})</h3>
-                  {productos.length === 0 ? (
-                    <p className="empty-state">No hay productos</p>
-                  ) : (
-                    <div className="table-container">
-                      {productos.map((producto) => (
-                        <div key={producto.id} className="producto-row">
-                          {editingProductId === producto.id ? (
-                            <div className="edit-form">
-                              <input
-                                type="text"
-                                defaultValue={producto.nombre}
-                                onBlur={(e) => {
-                                  if (e.target.value !== producto.nombre) {
-                                    updateProducto(producto.id, { nombre: e.target.value })
-                                  }
-                                }}
-                              />
-                              <input
-                                type="number"
-                                defaultValue={producto.precio}
-                                onBlur={(e) => {
-                                  if (parseFloat(e.target.value) !== producto.precio) {
-                                    updateProducto(producto.id, { precio: parseFloat(e.target.value) })
-                                  }
-                                }}
-                              />
-                              <input
-                                type="number"
-                                defaultValue={producto.stock}
-                                onBlur={(e) => {
-                                  if (parseInt(e.target.value) !== producto.stock) {
-                                    updateProducto(producto.id, { stock: parseInt(e.target.value) })
-                                  }
-                                }}
-                              />
-                              <label>
+                  {/* Products List */}
+                  <div className="admin-card">
+                    <h3 className="admin-card__title">Productos ({productos.length})</h3>
+                    {productos.length === 0 ? (
+                      <p className="admin-empty-state">No hay productos registrados</p>
+                    ) : (
+                      <div className="admin-product-grid">
+                        {productos.map((producto) => (
+                          <div key={producto.id} className="admin-product-card">
+                            {editingProductId === producto.id ? (
+                              <div className="admin-product-card__edit">
                                 <input
-                                  type="checkbox"
-                                  defaultChecked={producto.disponible}
-                                  onChange={(e) =>
-                                    updateProducto(producto.id, { disponible: e.target.checked })
-                                  }
+                                  className="admin-input admin-input--sm"
+                                  type="text"
+                                  defaultValue={producto.nombre}
+                                  onBlur={(e) => {
+                                    if (e.target.value !== producto.nombre) {
+                                      updateProducto(producto.id, { nombre: e.target.value })
+                                    }
+                                  }}
                                 />
-                                Disponible
-                              </label>
-                              <button
-                                className="action-btn save-btn"
-                                onClick={() => setEditingProductId(null)}
-                              >
-                                Listo
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="producto-info">
-                                <span className="producto-nombre">{producto.nombre}</span>
-                                <span className="producto-precio">${producto.precio}</span>
-                                <span className="producto-stock">Stock: {producto.stock}</span>
-                                <span className={`producto-status ${producto.disponible ? 'available' : 'unavailable'}`}>
-                                  {producto.disponible ? 'Disponible' : 'No disponible'}
-                                </span>
-                              </div>
-                              <div className="producto-actions">
+                                <input
+                                  className="admin-input admin-input--sm"
+                                  type="number"
+                                  defaultValue={producto.precio}
+                                  onBlur={(e) => {
+                                    if (parseFloat(e.target.value) !== producto.precio) {
+                                      updateProducto(producto.id, { precio: parseFloat(e.target.value) })
+                                    }
+                                  }}
+                                />
+                                <input
+                                  className="admin-input admin-input--sm"
+                                  type="number"
+                                  defaultValue={producto.stock}
+                                  onBlur={(e) => {
+                                    if (parseInt(e.target.value) !== producto.stock) {
+                                      updateProducto(producto.id, { stock: parseInt(e.target.value) })
+                                    }
+                                  }}
+                                />
+                                <label className="admin-checkbox-label admin-checkbox-label--sm">
+                                  <input
+                                    type="checkbox"
+                                    defaultChecked={producto.disponible}
+                                    onChange={(e) =>
+                                      updateProducto(producto.id, { disponible: e.target.checked })
+                                    }
+                                  />
+                                  <span>Disponible</span>
+                                </label>
                                 <button
-                                  className="action-btn edit-btn"
-                                  onClick={() => setEditingProductId(producto.id)}
+                                  className="admin-button admin-button--sm admin-button--secondary"
+                                  onClick={() => setEditingProductId(null)}
                                 >
-                                  Editar
-                                </button>
-                                <button
-                                  className="action-btn delete-btn"
-                                  onClick={() => deleteProducto(producto.id)}
-                                >
-                                  Eliminar
+                                  Listo
                                 </button>
                               </div>
-                            </>
-                          )}
+                            ) : (
+                              <>
+                                <div className="admin-product-card__content">
+                                  <div className="admin-product-card__header">
+                                    <h4 className="admin-product-card__name">{producto.nombre}</h4>
+                                    <span
+                                      className={`admin-badge ${
+                                        producto.disponible ? 'admin-badge--success' : 'admin-badge--danger'
+                                      }`}
+                                    >
+                                      {producto.disponible ? 'Disponible' : 'No disponible'}
+                                    </span>
+                                  </div>
+                                  <div className="admin-product-card__info">
+                                    <div>
+                                      <span className="admin-product-card__label">Precio:</span>
+                                      <span className="admin-product-card__value">${producto.precio}</span>
+                                    </div>
+                                    <div>
+                                      <span className="admin-product-card__label">Stock:</span>
+                                      <span className="admin-product-card__value">{producto.stock}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="admin-product-card__actions">
+                                  <button
+                                    className="admin-button admin-button--sm admin-button--secondary"
+                                    onClick={() => setEditingProductId(producto.id)}
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    className="admin-button admin-button--sm admin-button--danger"
+                                    onClick={() => deleteProducto(producto.id)}
+                                  >
+                                    Eliminar
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Eventos Tab */}
+          {activeTab === 'eventos' && (
+            <div className="admin-section">
+              <h2 className="admin-section__title">Gestión de Eventos</h2>
+
+              {/* Create Event Form */}
+              <div className="admin-card">
+                <h3 className="admin-card__title">Crear Nuevo Evento</h3>
+                <div className="admin-form-grid">
+                  <input
+                    className="admin-input"
+                    type="text"
+                    placeholder="Nombre del evento"
+                    value={newEventoForm.nombre}
+                    onChange={(e) => setNewEventoForm({ ...newEventoForm, nombre: e.target.value })}
+                  />
+                  <input
+                    className="admin-input"
+                    type="text"
+                    placeholder="Artista"
+                    value={newEventoForm.artista}
+                    onChange={(e) => setNewEventoForm({ ...newEventoForm, artista: e.target.value })}
+                  />
+                  <input
+                    className="admin-input"
+                    type="datetime-local"
+                    value={newEventoForm.fecha}
+                    onChange={(e) => setNewEventoForm({ ...newEventoForm, fecha: e.target.value })}
+                  />
+                </div>
+                <button
+                  className="admin-button admin-button--primary"
+                  onClick={createEvento}
+                  disabled={loading}
+                >
+                  {loading ? 'Creando...' : 'Crear Evento'}
+                </button>
+              </div>
+
+              {/* Events List */}
+              <div className="admin-card">
+                <h3 className="admin-card__title">Eventos ({eventos.length})</h3>
+                {eventos.length === 0 ? (
+                  <p className="admin-empty-state">No hay eventos registrados</p>
+                ) : (
+                  <div className="admin-event-grid">
+                    {eventos.map((evento) => (
+                      <div key={evento.id} className="admin-event-card">
+                        <div className="admin-event-card__header">
+                          <div>
+                            <h4 className="admin-event-card__name">{evento.nombre}</h4>
+                            <p className="admin-event-card__artist">{evento.artista}</p>
+                          </div>
+                          <span
+                            className={`admin-badge ${
+                              evento.activo ? 'admin-badge--success' : 'admin-badge--danger'
+                            }`}
+                          >
+                            {evento.activo ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </div>
+                        <p className="admin-event-card__date">
+                          {new Date(evento.fecha).toLocaleDateString('es-CO', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                        <div className="admin-event-card__actions">
+                          <button
+                            className={`admin-button admin-button--sm ${
+                              evento.activo ? 'admin-button--secondary' : 'admin-button--primary'
+                            }`}
+                            onClick={() => toggleEvento(evento.id, evento.activo)}
+                          >
+                            {evento.activo ? 'Desactivar' : 'Activar'}
+                          </button>
+                          <button
+                            className="admin-button admin-button--sm admin-button--danger"
+                            onClick={() => deleteEvento(evento.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Metricas Tab */}
+          {activeTab === 'metricas' && (
+            <div className="admin-section">
+              <h2 className="admin-section__title">Métricas (Auto-actualiza cada 10s)</h2>
+
+              {metricas ? (
+                <>
+                  {/* KR Cards */}
+                  <div className="admin-kr-grid">
+                    <div className="admin-kr-card">
+                      <h3 className="admin-kr-card__label">KR1: Adopción</h3>
+                      <div
+                        className="admin-kr-card__value"
+                        style={{ color: getKRColor(metricas.kr1_adopcion_pct, 25) }}
+                      >
+                        {metricas.kr1_adopcion_pct.toFixed(1)}%
+                      </div>
+                      <p className="admin-kr-card__target">Target: ≥25%</p>
+                      <p className="admin-kr-card__description">Porcentaje de asistentes que piden</p>
+                    </div>
+
+                    <div className="admin-kr-card">
+                      <h3 className="admin-kr-card__label">KR2: Tiempo Promedio</h3>
+                      <div
+                        className="admin-kr-card__value"
+                        style={{ color: getKRColor(metricas.kr2_tiempo_promedio_seg, 600, true) }}
+                      >
+                        {(metricas.kr2_tiempo_promedio_seg / 60).toFixed(1)} min
+                      </div>
+                      <p className="admin-kr-card__target">Target: &lt;10 min</p>
+                      <p className="admin-kr-card__description">Tiempo de pedido a entrega</p>
+                    </div>
+
+                    <div className="admin-kr-card">
+                      <h3 className="admin-kr-card__label">KR3: Tasa de Fallo</h3>
+                      <div
+                        className="admin-kr-card__value"
+                        style={{ color: getKRColor(metricas.kr3_fallidos_pct, 1, true) }}
+                      >
+                        {metricas.kr3_fallidos_pct.toFixed(2)}%
+                      </div>
+                      <p className="admin-kr-card__target">Target: &lt;1%</p>
+                      <p className="admin-kr-card__description">Porcentaje de pedidos fallidos</p>
+                    </div>
+                  </div>
+
+                  {/* Pedidos por Hora */}
+                  <div className="admin-card">
+                    <h3 className="admin-card__title">Pedidos por Hora</h3>
+                    <div className="admin-bar-chart">
+                      {metricas.pedidos_por_hora.map((item, idx) => (
+                        <div key={idx} className="admin-bar-item">
+                          <div
+                            className="admin-bar"
+                            style={{
+                              height: `${Math.min((item.total / 20) * 100, 100)}%`,
+                            }}
+                          />
+                          <span className="admin-bar-label">
+                            {new Date(item.hora).getHours()}:00
+                          </span>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
+                  </div>
 
-        {/* Eventos Tab */}
-        {activeTab === 'eventos' && (
-          <div className="tab-pane">
-            <h2>Gestión de Eventos</h2>
-
-            <div className="form-section">
-              <h3>Crear Nuevo Evento</h3>
-              <div className="form-grid">
-                <input
-                  type="text"
-                  placeholder="Nombre del evento"
-                  value={newEventoForm.nombre}
-                  onChange={(e) => setNewEventoForm({ ...newEventoForm, nombre: e.target.value })}
-                />
-                <input
-                  type="text"
-                  placeholder="Artista"
-                  value={newEventoForm.artista}
-                  onChange={(e) => setNewEventoForm({ ...newEventoForm, artista: e.target.value })}
-                />
-                <input
-                  type="datetime-local"
-                  placeholder="Fecha y hora"
-                  value={newEventoForm.fecha}
-                  onChange={(e) => setNewEventoForm({ ...newEventoForm, fecha: e.target.value })}
-                />
-              </div>
-              <button className="action-btn create-btn" onClick={createEvento} disabled={loading}>
-                {loading ? 'Creating...' : 'Crear Evento'}
-              </button>
-            </div>
-
-            <div className="eventos-list">
-              <h3>Eventos ({eventos.length})</h3>
-              {eventos.length === 0 ? (
-                <p className="empty-state">No hay eventos</p>
-              ) : (
-                <div className="table-container">
-                  {eventos.map((evento) => (
-                    <div key={evento.id} className="evento-row">
-                      <div className="evento-info">
-                        <span className="evento-nombre">{evento.nombre}</span>
-                        <span className="evento-artista">{evento.artista}</span>
-                        <span className="evento-fecha">
-                          {new Date(evento.fecha).toLocaleDateString()}
-                        </span>
-                        <span className={`evento-status ${evento.activo ? 'active' : 'inactive'}`}>
-                          {evento.activo ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </div>
-                      <div className="evento-actions">
-                        <button
-                          className={`action-btn ${evento.activo ? 'deactivate-btn' : 'activate-btn'}`}
-                          onClick={() => toggleEvento(evento.id, evento.activo)}
-                        >
-                          {evento.activo ? 'Desactivar' : 'Activar'}
-                        </button>
-                        <button
-                          className="action-btn delete-btn"
-                          onClick={() => deleteEvento(evento.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
+                  {/* Top Productos */}
+                  <div className="admin-card">
+                    <h3 className="admin-card__title">Productos Más Vendidos</h3>
+                    <div className="admin-top-products">
+                      {metricas.top_productos.map((product, idx) => (
+                        <div key={idx} className="admin-top-product-item">
+                          <span className="admin-top-product-rank">#{idx + 1}</span>
+                          <span className="admin-top-product-name">{product.nombre}</span>
+                          <span className="admin-top-product-count">{product.count} vendidos</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                </>
+              ) : (
+                <div className="admin-loading">
+                  <p>Cargando métricas...</p>
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {/* Metricas Tab */}
-        {activeTab === 'metricas' && (
-          <div className="tab-pane">
-            <h2>Métricas (Auto-actualiza cada 10s)</h2>
-
-            {metricas ? (
-              <>
-                <div className="metrics-cards">
-                  <div className="metric-card">
-                    <h4>KR1: Adopcion</h4>
-                    <div className="metric-value">{metricas.kr1_adopcion_pct.toFixed(1)}%</div>
-                    <p className="metric-label">de pedidos entregados (target: ≥25%)</p>
-                  </div>
-                  <div className="metric-card">
-                    <h4>KR2: Tiempo Promedio</h4>
-                    <div className="metric-value">{(metricas.kr2_tiempo_promedio_seg / 60).toFixed(1)} min</div>
-                    <p className="metric-label">desde pedido hasta entrega (target: &lt;10 min)</p>
-                  </div>
-                  <div className="metric-card">
-                    <h4>KR3: Tasa de Fallo</h4>
-                    <div className="metric-value">{metricas.kr3_fallidos_pct.toFixed(2)}%</div>
-                    <p className="metric-label">de pedidos fallidos (target: &lt;1%)</p>
-                  </div>
-                </div>
-
-                <div className="charts-section">
-                  <h3>Pedidos por Hora</h3>
-                  <div className="bar-chart">
-                    {metricas.pedidos_por_hora.map((item, idx) => (
-                      <div key={idx} className="bar-item">
-                        <div
-                          className="bar"
-                          style={{
-                            height: `${Math.min((item.total / 20) * 100, 100)}%`,
-                          }}
-                        />
-                        <span className="bar-label">{new Date(item.hora).getHours()}:00</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="top-products-section">
-                  <h3>Productos Mas Vendidos</h3>
-                  <div className="top-products-list">
-                    {metricas.top_productos.map((product, idx) => (
-                      <div key={idx} className="top-product-item">
-                        <span className="rank">#{idx + 1}</span>
-                        <span className="product-name">{product.nombre}</span>
-                        <span className="product-count">{product.count} vendidos</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <p className="empty-state">Cargando métricas...</p>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
