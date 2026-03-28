@@ -105,11 +105,11 @@ export class DeliveryService {
       pedido.entrega ??
       entregaRepo.create({
         pedidoId,
-        repartidorId: repartidor?.id ?? undefined,
+        repartidorId: repartidor?.id ?? (undefined as unknown as string),
         estado: EstadoEntrega.ASIGNADO,
       });
 
-    entrega.repartidorId = repartidor?.id ?? undefined;
+    entrega.repartidorId = repartidor?.id ?? (undefined as unknown as string);
     entrega.estado = EstadoEntrega.ASIGNADO;
 
     await entregaRepo.save(entrega);
@@ -122,14 +122,14 @@ export class DeliveryService {
       correlationId: safeCorrelationId,
       tenantId: safeTenantId,
       payload: {
-        repartidorId: repartidor.id,
-        repartidorNombre: repartidor.nombre,
+        repartidorId: repartidor?.id ?? 'simulated',
+        repartidorNombre: repartidor?.nombre ?? 'Auto',
         zona: pedido.zona,
       },
     });
 
     this.logger.log(
-      `Pedido ${pedidoId} assigned to repartidor ${repartidor.nombre}`,
+      `Pedido ${pedidoId} assigned to repartidor ${repartidor?.nombre ?? 'simulated'}`,
     );
 
     setTimeout(() => {
